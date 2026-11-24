@@ -76,3 +76,29 @@ What's left:
 | 6 — PDF Submission | Both | Pending — blocked until 4 & 5 are done |
 
 **The only thing worth doing now on your side is Sub-Task 5** — the test suite and README. Neither depends on Alex finishing the viewer. Want me to start on that?
+
+---
+**user-prompt** | 2026-11-24T18:15:02Z | author: `jaminleod` | session: `8606d5cc441ea48f44da5e843fb64605`
+
+Okay Alex finished his portion but we're going to go over it; there's a couple things I'd like to change. Firstly, the chats don't need to be in MD... We want to get the output of the AI chats and make what looks to be a cohesive unit of data. And we also want a chat that is an accumulation of every committers work (all chats combined) so it you can see when things were changing.
+
+Also the card bodies for the chat look ugly and do not have styling, they are in plaintext as so:
+**Timestamp:** 2026-11-24T14:10:22Z
+**Author:** alexvu31
+**Type:** user-prompt
+**Session:** def-001
+
+Execute sub-task 4 and sub-task 5
+
+**Timestamp:** 2026-11-24T14:11:05Z
+**Author:** alexvu31
+**Type:** bob-response
+**Session:** def-001
+
+Built viewer.html - single-file HTML timeline viewer with file picker, drag-and-drop, author colour badges, event-type tags, and print-friendly CSS. Also wrote test_bob_log.py and README.md.
+
+And it doesn't show bob's follow up questions, nor what he changed. Maybe we should have it mark to a commit (harder) or some form of modifying to show.
+
+The 'md' files for the AI bots show up as they should I believe, but a history (since we have git already) of where changes were made and by which committer (and their AI agent) would be nice.
+
+How do you feel about this? We add more to the plan to get this looking like that?
