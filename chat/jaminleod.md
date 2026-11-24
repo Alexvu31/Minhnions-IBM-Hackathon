@@ -696,3 +696,15 @@ Committed as `e26b95d`. Here's what landed:
 - Viewer section updated to reflect current UI
 
 ---
+
+## Entry-041 - user-prompt
+**Timestamp:** 2026-11-24T19:25:50Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** f7f23ca4e278d3746ce170b98d1796ec
+
+You didn't remove the s1 fake session. Also the chats have anchor tags to files which are of course not in the directory structure of where bob-log is serving. If we could remove those that would be nice. Then I just want to leave it to my teammate to coordinate with bob to do the PDF. We will update the CONTEXT & README and let him do the PDF, hopefully with bob-log so that it dogfoods the work.
+
+Mention in future things to add that having the ability to see the ai's thought is good
+
+---
