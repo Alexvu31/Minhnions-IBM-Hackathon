@@ -559,7 +559,11 @@ function selectTab(id) {
 
 function _tabCountLabel(tab) {
   if (tab.type === "chat" && tab.entries) {
-    const n = tab.entries.length;
+    const n = tab.entries.filter(e => {
+      if (tab.filter && tab.filter.authors  && !tab.filter.authors.has(e.author))   return false;
+      if (tab.filter && tab.filter.sessions && !tab.filter.sessions.has(e.session)) return false;
+      return true;
+    }).length;
     return n > 0 ? `(${n})` : "";
   }
   if (tab.type === "history" && tab.commits) {
