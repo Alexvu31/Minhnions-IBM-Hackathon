@@ -414,3 +414,40 @@ Shall I write these as Sub-Tasks 7b and 7c into [`hackathon-plan.md`](hackathon-
 Yes add them to the plan and make sure that we have this context somewhere for us to write into the pdf on how we used bob etc
 
 ---
+
+## Entry-010 - bob-response
+**Timestamp:** 2026-11-24T18:36:48Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** 8606d5cc441ea48f44da5e843fb64605
+
+Done. Here's what was added:
+
+---
+
+**[`hackathon-plan.md`](hackathon-plan.md) — two new sub-tasks:**
+
+**Sub-Task 7b — Viewer Chat UI Redesign**
+- IBM Carbon Design palette (`#0F62FE`, `#001141`, `#F4F4F4`)
+- ChatGPT-style bubbles: user right-aligned IBM blue, AI left-aligned grey, no card borders
+- Tabbed layout with auto-generated per-author tabs + closeable file tabs
+- Filter panel per chat tab (author + session checkboxes)
+- Collapsed icon sidebar with hover-expand
+- Relative timestamps with absolute on hover
+
+**Sub-Task 7c — `bob-log serve` Live Server**
+- Python `ThreadingHTTPServer` serving `viewer.html` + `/api/export` + `/api/stream` (SSE)
+- Browser auto-detects HTTP vs `file:` protocol and switches between live and file-picker mode
+- Viewer re-fetches on `new-data` SSE event without losing active tab or filter state
+- Opens browser automatically via `webbrowser.open()`
+
+---
+
+**[`CONTEXT.md`](CONTEXT.md) — Entry-009 added:**
+- Chronological record of every way Bob was used during the build (6 categories)
+- Scoring criteria matrix mapping each deliverable to Innovation / Relevance / Practicality / Quality
+- Three pull quotes ready to drop directly into the PDF
+
+Ready to implement when you switch to agent mode — start with Sub-Task 7b?
+
+---
