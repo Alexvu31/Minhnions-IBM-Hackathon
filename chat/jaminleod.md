@@ -933,3 +933,13 @@ Judges can see the shadow branch at:
 That URL shows `chat/jaminleod.md`, `CONTEXT.md`, `README.md` — the entire AI working memory, right there in GitHub's UI, as proof the tool captured its own construction.
 
 ---
+
+## Entry-057 - user-prompt
+**Timestamp:** 2026-11-24T19:40:48Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** f7f23ca4e278d3746ce170b98d1796ec
+
+Why do we make the developers push the shadow branch? Make bob-log do it.
+
+---
