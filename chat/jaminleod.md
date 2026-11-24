@@ -302,3 +302,13 @@ Sub-Task 7 is done. Here's what changed:
 Ready for the commit message, then Sub-Task 8?
 
 ---
+
+## Entry-005 - user-prompt
+**Timestamp:** 2026-11-24T18:26:52Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** 8606d5cc441ea48f44da5e843fb64605
+
+Okay, make a commit message & tag message. Then I want to change more styling, because the styling is not what I envisioned
+
+---
