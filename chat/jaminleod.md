@@ -404,3 +404,13 @@ That's two clean sub-tasks. The styling redesign (7b) is entirely in `viewer.htm
 Shall I write these as Sub-Tasks 7b and 7c into [`hackathon-plan.md`](hackathon-plan.md) now?
 
 ---
+
+## Entry-009 - user-prompt
+**Timestamp:** 2026-11-24T18:35:44Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** 8606d5cc441ea48f44da5e843fb64605
+
+Yes add them to the plan and make sure that we have this context somewhere for us to write into the pdf on how we used bob etc
+
+---
