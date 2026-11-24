@@ -624,7 +624,7 @@ function buildSidebar(files) {
       const isChat = p.startsWith('chat/');
       const color  = isChat ? authorColor(fname.replace(/\.md$/,'')) : '#57606a';
       const count  = _counts[p];
-      html += `<div class="tree-file" data-path="${esc(p)}" onclick="openFile(${JSON.stringify(p)})">
+      html += `<div class="tree-file" data-path="${esc(p)}" onclick='openFile(${JSON.stringify(p)})'>
         <span class="author-dot" style="background:${color}"></span>
         <span class="tree-file-name">${esc(fname)}</span>
         ${count !== undefined ? `<span class="entry-pill">${count}</span>` : ''}
