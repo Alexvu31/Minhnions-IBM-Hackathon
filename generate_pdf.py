@@ -35,21 +35,21 @@ _ss = getSampleStyleSheet()
 def _s(name, **kw):
     return ParagraphStyle(name, parent=_ss["Normal"], **kw)
 
-H1  = _s("H1",  fontName="Helvetica-Bold", fontSize=12, leading=14,
-          textColor=IBM_NAVY, spaceBefore=7, spaceAfter=2)
+H1  = _s("H1",  fontName="Helvetica-Bold", fontSize=11.5, leading=13,
+          textColor=IBM_NAVY, spaceBefore=4, spaceAfter=1)
 H2  = _s("H2",  fontName="Helvetica-Bold", fontSize=11, leading=13,
-          textColor=IBM_BLUE, spaceBefore=5, spaceAfter=2)
-BD  = _s("BD",  fontName="Helvetica",      fontSize=11, leading=14,
-          textColor=DGREY, alignment=TA_JUSTIFY, spaceAfter=3)
-SML = _s("SML", fontName="Helvetica",      fontSize=10, leading=13,
+          textColor=IBM_BLUE, spaceBefore=3, spaceAfter=1)
+BD  = _s("BD",  fontName="Helvetica",      fontSize=11, leading=13.5,
           textColor=DGREY, alignment=TA_JUSTIFY, spaceAfter=2)
-BUL = _s("BUL", fontName="Helvetica",      fontSize=10.5, leading=13,
-          textColor=DGREY, leftIndent=10, spaceAfter=2)
-COD = _s("COD", fontName="Courier",        fontSize=8.5, leading=11,
+SML = _s("SML", fontName="Helvetica",      fontSize=10, leading=12,
+          textColor=DGREY, alignment=TA_JUSTIFY, spaceAfter=2)
+BUL = _s("BUL", fontName="Helvetica",      fontSize=10.5, leading=12.5,
+          textColor=DGREY, leftIndent=10, spaceAfter=1)
+COD = _s("COD", fontName="Courier",        fontSize=8, leading=10,
           textColor=HexColor("#161616"), backColor=LGREY,
-          leftIndent=8, rightIndent=8, spaceBefore=3, spaceAfter=3, borderPad=3)
-CAP = _s("CAP", fontName="Helvetica-Oblique", fontSize=8.5, leading=10,
-          textColor=MGREY, alignment=TA_CENTER, spaceAfter=4)
+          leftIndent=7, rightIndent=7, spaceBefore=2, spaceAfter=2, borderPad=2)
+CAP = _s("CAP", fontName="Helvetica-Oblique", fontSize=8, leading=9,
+          textColor=MGREY, alignment=TA_CENTER, spaceAfter=3)
 
 # ── Flowable: thin rule under H1 ─────────────────────────────────────────────
 class Rule(Flowable):
@@ -60,7 +60,7 @@ class Rule(Flowable):
         self.canv.line(0, self._t/2, self.width, self._t/2)
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
-def sp(h=0.07): return Spacer(1, h*inch)
+def sp(h=0.05): return Spacer(1, h*inch)
 def h1(t): return [Paragraph(t, H1), Rule()]
 def h2(t): return [Paragraph(t, H2)]
 def p(t): return Paragraph(t, BD)
@@ -95,8 +95,8 @@ def table2(data, widths, header_bg=IBM_NAVY, row_colors=None):
         ("GRID",          (0,0), (-1,-1), 0.4, MGREY),
         ("LEFTPADDING",   (0,0), (-1,-1), 5),
         ("RIGHTPADDING",  (0,0), (-1,-1), 5),
-        ("TOPPADDING",    (0,0), (-1,-1), 4),
-        ("BOTTOMPADDING", (0,0), (-1,-1), 4),
+        ("TOPPADDING",    (0,0), (-1,-1), 3),
+        ("BOTTOMPADDING", (0,0), (-1,-1), 3),
     ]
     if row_colors:
         styles_.append(("ROWBACKGROUNDS", (0,1), (-1,-1), row_colors))
@@ -129,36 +129,33 @@ def page1():
         ("VALIGN",        (0,0),(-1,-1), "MIDDLE"),
         ("LEFTPADDING",   (0,0),(-1,-1), 10),
         ("RIGHTPADDING",  (0,0),(-1,-1), 10),
-        ("TOPPADDING",    (0,0),(-1,-1), 12),
-        ("BOTTOMPADDING", (0,0),(-1,-1), 12),
+        ("TOPPADDING",    (0,0),(-1,-1), 9),
+        ("BOTTOMPADDING", (0,0),(-1,-1), 9),
     ]))
-    s.append(bt); s.append(sp(0.08))
+    s.append(bt); s.append(sp(0.03))
 
     # Meta strip
-    md = [["Team: Minhnions", "CIPS x IBM Hackathon 2024", "4 pages | font >= 11pt"]]
-    mt = Table(md, colWidths=[PW*f for f in [0.33, 0.44, 0.23]])
+    md = [["Team: Minhnions  |  CIPS x IBM Hackathon 2024  |  4 pages  |  font >= 11pt"]]
+    mt = Table(md, colWidths=[PW])
     mt.setStyle(TableStyle([
         ("BACKGROUND",    (0,0),(-1,-1), LBLUE),
         ("FONTNAME",      (0,0),(-1,-1), "Helvetica-Bold"),
         ("FONTSIZE",      (0,0),(-1,-1), 8.5),
         ("TEXTCOLOR",     (0,0),(-1,-1), IBM_NAVY),
-        ("ALIGN",         (2,0),(2,0), "RIGHT"),
         ("LEFTPADDING",   (0,0),(-1,-1), 7),
         ("TOPPADDING",    (0,0),(-1,-1), 3),
         ("BOTTOMPADDING", (0,0),(-1,-1), 3),
     ]))
-    s.append(mt); s.append(sp(0.1))
+    s.append(mt); s.append(sp(0.07))
 
     # Problem
     s += h1("The Problem")
     s.append(p(
         "IBM Bob is powerful inside a single session -- but that session is ephemeral. "
-        "Every new chat starts with a blank slate. When two contributors work simultaneously, "
-        "neither agent knows what the other is doing. There is no durable, version-controlled "
-        "AI working memory that travels with the repository. Existing workarounds (pasting context, "
-        "shared notes docs) are fragile and do not scale."
+        "Every new chat starts blank. When two contributors work simultaneously, neither agent "
+        "knows what the other is doing. Existing workarounds (pasting context, shared notes docs) "
+        "are fragile and do not scale to multi-agent workflows."
     ))
-    s.append(sp(0.06))
 
     # User story
     s += h1("User Story")
@@ -166,39 +163,35 @@ def page1():
         "<i>\"As an IBM Bob user on a team project, I want Bob to remember what it did last session "
         "and know what my teammate's Bob agent has been doing, so I can pick up exactly where we "
         "left off -- across machines, across sessions, without copy-pasting context.\"</i>"
-    )]], colWidths=[PW - 0.2*inch])
+    )]], colWidths=[PW - 0.15*inch])
     qt.setStyle(TableStyle([
         ("BACKGROUND",    (0,0),(-1,-1), LBLUE),
-        ("LEFTPADDING",   (0,0),(-1,-1), 12),
-        ("RIGHTPADDING",  (0,0),(-1,-1), 12),
-        ("TOPPADDING",    (0,0),(-1,-1), 8),
-        ("BOTTOMPADDING", (0,0),(-1,-1), 8),
+        ("LEFTPADDING",   (0,0),(-1,-1), 10),
+        ("RIGHTPADDING",  (0,0),(-1,-1), 10),
+        ("TOPPADDING",    (0,0),(-1,-1), 6),
+        ("BOTTOMPADDING", (0,0),(-1,-1), 6),
         ("LINEAFTER",     (0,0),(0,-1), 4, IBM_BLUE),
     ]))
-    s.append(qt); s.append(sp(0.08))
+    s.append(qt); s.append(sp(0.05))
 
     # Solution
     s += h1("Solution Overview")
     s.append(p(
         "<b>Bob Logbook</b> wires IBM Bob lifecycle hooks into a Python CLI that writes every "
-        "chat turn to a dedicated <i>git shadow branch</i> (<code>bob-context</code>). "
-        "This orphan branch shares no history with <code>main</code> -- no merge conflicts ever. "
-        "A single-file HTML viewer renders the workspace as a live chat timeline. "
-        "Multiple agents converge on the same state via ordinary git push/pull -- "
-        "no new accounts, no cloud services, Python 3 stdlib only."
+        "chat turn to a <i>git shadow branch</i> (<code>bob-context</code>) -- an orphan branch "
+        "that never touches the working tree. A single-file HTML viewer renders the workspace "
+        "as a live chat timeline. Multiple agents converge via ordinary git push/pull."
     ))
-    s.append(sp(0.06))
 
     s += h2("Deliverables")
     for item in [
         "<b>bob_log.py</b> -- Python 3 stdlib CLI: init, read, write, append, commit, ls, export, log, diff, serve",
         "<b>bob-log-hook.py</b> -- Hook wrapper for Stop, UserPromptSubmit, SessionStart events",
-        "<b>viewer.html</b> -- Single-file IBM Carbon chat viewer with SSE live updates",
-        "<b>.bob/skills/bob-log/SKILL.md</b> -- Bob skill for proactive CLI usage",
+        "<b>viewer.html</b> -- Single-file IBM Carbon chat viewer with SSE live updates and filter panel",
         "<b>README.md + test_bob_log.py</b> -- Full docs and stdlib unittest test suite",
     ]:
         s.append(bul(item))
-    s.append(sp(0.08))
+    s.append(sp(0.05))
 
     # Score table
     s += h1("Scoring Rubric")
@@ -243,11 +236,10 @@ def page2():
     s += h1("System Architecture")
     s.append(p(
         "Every component runs inside the git repo -- no external services. "
-        "All writes use git plumbing primitives: <code>hash-object</code> "
-        "-> <code>mktree</code> -> <code>commit-tree</code> -> <code>update-ref</code>. "
-        "The working tree is never switched."
+        "All writes use git plumbing: <code>hash-object</code> -> <code>mktree</code> "
+        "-> <code>commit-tree</code> -> <code>update-ref</code>. Working tree never switched."
     ))
-    s.append(sp(0.06))
+    s.append(sp(0.04))
 
     # Architecture table
     arch_data = [
@@ -267,47 +259,46 @@ def page2():
     ]
     cw = [PW*0.38, PW*0.62]
     s.append(table2(arch_data, cw, row_colors=[white, LGREY]))
-    s.append(sp(0.08))
+    s.append(sp(0.05))
 
     # Data flow strip
     s += h2("Data Flow")
-    flow = ["IBM Bob", "->", "hook.py", "->", "bob_log.py", "->", "bob-context", "->", "viewer.html"]
+    flow = ["IBM Bob", "->", "hook.py", "->", "bob_log.py", "->", "bob-context", "->", "viewer"]
     fc   = [IBM_NAVY, None, IBM_BLUE, None, ACCENT, None, GREEN, None, HexColor("#6929C4")]
     fd = [[
         Paragraph(
             f"<b><font color='white'>{t}</font></b>" if c
             else f"<b><font color='#888'>{t}</font></b>",
-            _s(f"fl{i}", fontSize=8, leading=10, alignment=TA_CENTER, fontName="Helvetica-Bold")
+            _s(f"fl{i}", fontSize=7.5, leading=9, alignment=TA_CENTER, fontName="Helvetica-Bold")
         )
         for i,(t,c) in enumerate(zip(flow,fc))
     ]]
-    ft = Table(fd, colWidths=[PW/len(flow)]*len(flow), rowHeights=[0.35*inch])
+    ft = Table(fd, colWidths=[PW/len(flow)]*len(flow), rowHeights=[0.28*inch])
     ts = [("VALIGN",(0,0),(-1,-1),"MIDDLE"),("ALIGN",(0,0),(-1,-1),"CENTER"),
-          ("TOPPADDING",(0,0),(-1,-1),3),("BOTTOMPADDING",(0,0),(-1,-1),3)]
+          ("TOPPADDING",(0,0),(-1,-1),2),("BOTTOMPADDING",(0,0),(-1,-1),2)]
     for i,(_,c) in enumerate(zip(flow,fc)):
         if c: ts.append(("BACKGROUND",(i,0),(i,0),c))
     ft.setStyle(TableStyle(ts))
-    s.append(ft); s.append(sp(0.1))
+    s.append(ft); s.append(sp(0.04))
 
     # Bob usage evidence
     s += h1("IBM Bob Usage Evidence")
     s.append(p(
-        "Bob was the <b>primary engineer</b> throughout -- not just for code generation but for "
-        "architecture decisions, brainstorming, and debugging. The screenshots below are "
-        "direct evidence from the actual build sessions."
+        "Bob was the <b>primary engineer</b> throughout -- for architecture decisions, brainstorming, "
+        "code generation, and debugging. The screenshots below are direct evidence."
     ))
-    s.append(sp(0.07))
+    s.append(sp(0.04))
 
-    # Image of application (Bob Shell terminal -- planning session)
-    s += h2("Figure 1: Planning Session in IBM Bob Shell")
-    s += img("Image of application.png", max_w=PW, max_h=1.8*inch,
-             caption_text="Bob Shell v2.1.0 -- Bob reads hackathon slides, activates create-plan skill, asks clarifying questions, brainstorms project ideas A-H, and writes the CONTEXT.md file.")
-    s.append(sp(0.07))
+    # Viewer screenshot (swapped to Figure 1)
+    s += h2("Figure 1: Bob Logbook Viewer  (viewer.html)")
+    s += img("image1.png", max_w=PW, max_h=1.65*inch,
+             caption_text="viewer.html: left sidebar shows file tree with entry-count pills; right panel shows IBM Carbon chat bubbles for alexvu31 and jaminleod interleaved by timestamp.")
+    s.append(sp(0.04))
 
     # image2 -- planning transcript
     s += h2("Figure 2: Bob Brainstorming Transcript")
-    s += img("image2.png", max_w=PW, max_h=2.0*inch,
-             caption_text="Bob evaluates scoring criteria, pitches four ideas sized for 4 hours, and pivots to Bob Logbook after team discussion. This transcript produced hackathon-plan.md.")
+    s += img("image2.png", max_w=PW, max_h=1.7*inch,
+             caption_text="Bob evaluates scoring criteria, pitches four ideas for 4 hours, and pivots to Bob Logbook. This transcript produced hackathon-plan.md.")
 
     return s
 
@@ -334,14 +325,13 @@ def page3():
         '  }',
         '}',
     ))
-    s.append(sp(0.07))
+    s.append(sp(0.04))
 
     # 2 -- Write plumbing
     s += h2("2 -- Shadow Branch Write via Git Plumbing  (bob_log.py)")
     s.append(ps(
-        "The key insight: <b>never switch branches</b>. Every write uses git object-model "
-        "primitives -- content becomes a blob, a new tree is built, a commit is created, "
-        "and <code>update-ref</code> advances the branch pointer atomically."
+        "Never switch branches. Every write uses git plumbing -- content becomes a blob, "
+        "a tree is rebuilt, a commit is created, and <code>update-ref</code> advances the pointer atomically."
     ))
     s.append(code(
         "def _write_blob(path, content, message='update'):",
@@ -357,14 +347,14 @@ def page3():
         "    # 4. Advance the branch ref -- no checkout required",
         "    _git('update-ref', f'refs/heads/{BRANCH}', commit)",
     ))
-    s.append(sp(0.07))
+    s.append(sp(0.04))
 
     # 3 -- SSE serve
     s += h2("3 -- Live SSE Server  (bob-log serve)")
     s.append(ps(
-        "A <code>ThreadingHTTPServer</code> so the SSE loop and export endpoint run concurrently. "
-        "The viewer auto-detects <code>http:</code> vs <code>file:</code> protocol and either "
-        "connects the event stream or falls back to the JSON file picker."
+        "<code>ThreadingHTTPServer</code> -- SSE loop and export endpoint run concurrently. "
+        "Viewer auto-detects <code>http:</code> vs <code>file:</code> and either connects the "
+        "event stream or falls back to the JSON file picker."
     ))
     s.append(code(
         "class Handler(BaseHTTPRequestHandler):",
@@ -381,17 +371,16 @@ def page3():
         "            data = cmd_export_json_inline()",
         "            self.wfile.write(json.dumps(data).encode())",
     ))
-    s.append(sp(0.08))
+    s.append(sp(0.04))
 
-    # Viewer screenshot
-    s += h2("Figure 3: Bob Logbook Viewer  (viewer.html)")
+    # Planning session screenshot (swapped to Figure 3)
+    s += h2("Figure 3: Planning Session in IBM Bob Shell")
     s.append(ps(
-        "Single-file IBM Carbon viewer -- no npm, no build step. Chat bubbles, tabbed layout, "
-        "per-author filter, collapsed icon sidebar. The All Chats tab merges all contributors "
-        "sorted by timestamp."
+        "Bob Shell v2.1.0 used throughout the hackathon. Bob read the slides, activated "
+        "the create-plan skill, and drove the brainstorm that produced the full project plan."
     ))
-    s += img("image1.png", max_w=PW, max_h=2.4*inch,
-             caption_text="viewer.html: left sidebar shows file tree with entry-count pills; right panel shows IBM Carbon chat bubbles for alexvu31 and jaminleod interleaved by timestamp.")
+    s += img("Image of application.png", max_w=PW, max_h=1.5*inch,
+             caption_text="Bob Shell v2.1.0 -- Bob reads hackathon slides, activates create-plan skill, asks clarifying questions, brainstorms project ideas A-H, and writes CONTEXT.md.")
 
     return s
 
@@ -415,59 +404,52 @@ def page4():
     ]
     cw = [PW*0.28, PW*0.72]
     s.append(table2(test_data, cw, row_colors=[white, LGREY]))
-    s.append(sp(0.09))
+    s.append(sp(0.06))
 
     s += h1("How to Run")
     s.append(code(
         "# 1. Clone the repo",
         "git clone https://github.com/Alexvu31/Minhnions-IBM-Hackathon.git",
-        "",
         "# 2. Initialise the shadow branch",
         "python bob_log.py init",
-        "",
         "# 3. Start the live viewer  (opens http://localhost:4242)",
         "python bob_log.py serve --port 4242",
-        "",
         "# 4. Run the test suite",
         "python -m pytest test_bob_log.py -v",
     ))
-    s.append(sp(0.09))
+    s.append(sp(0.06))
 
     s += h1("Team Reflection -- How We Built It With Bob")
     s.append(p(
         "<b>Bob was not just a code generator -- it was an active collaborator.</b> "
-        "The project started with Bob reading the hackathon slides and running a structured "
-        "brainstorming session (Figures 1 and 2). Bob proposed eight project ideas, analysed each "
-        "against the scoring rubric, and helped the team converge on Bob Logbook. It then wrote "
-        "the full project plan (<code>hackathon-plan.md</code>) with nine sub-tasks, estimated time, "
-        "and division of labour."
+        "The project started with Bob reading the hackathon slides (see Figures 1 and 2). "
+        "Bob proposed eight ideas, analysed each against the scoring rubric, converged on "
+        "Bob Logbook, then wrote the full project plan with nine sub-tasks and a division of labour."
     ))
-    s.append(sp(0.04))
+    s.append(sp(0.03))
     s.append(p(
-        "During implementation Bob wrote the core git plumbing in <code>bob_log.py</code>, "
-        "debugged PowerShell encoding issues, designed the IBM Carbon chat UI for "
-        "<code>viewer.html</code>, fixed the hook/viewer entry-format mismatch, and built the "
-        "SSE live server. Every decision was recorded in <code>CONTEXT.md</code> on the shadow "
-        "branch -- which is itself evidence of the tool working."
+        "Bob wrote the core git plumbing, debugged PowerShell encoding issues, designed the "
+        "IBM Carbon chat UI for <code>viewer.html</code>, fixed the hook/viewer entry-format "
+        "mismatch, and built the SSE server. Every decision was recorded in <code>CONTEXT.md</code> "
+        "on the shadow branch -- evidence of the tool working."
     ))
-    s.append(sp(0.04))
+    s.append(sp(0.03))
     s.append(p(
-        "<b>The meta result: we used Bob Logbook to build Bob Logbook.</b> The shadow branch "
-        "captured 40+ chat turns across two contributors and two machines. The viewer rendered "
-        "our collaboration in real time. The SessionStart hook meant that whenever one of us "
-        "resumed a session, Bob immediately knew what the other had done -- no manual context-pasting."
+        "<b>Meta result: we used Bob Logbook to build Bob Logbook.</b> The shadow branch "
+        "captured 40+ turns across two contributors. The SessionStart hook meant each new "
+        "session started with a full summary of what changed -- no manual context-pasting."
     ))
-    s.append(sp(0.07))
+    s.append(sp(0.05))
 
     s += h2("What We Would Do Next")
     for item in [
-        "Remote sync: <code>bob-log pull</code> + <code>bob-log push</code> for true multi-machine coordination",
-        "Conflict detection: warn when two agents write the same file concurrently",
-        "VS Code extension: sidebar panel surfacing the shadow branch without a browser",
-        "LLM summarisation: <code>bob-log summarise</code> -- compress old entries to free context window",
+        "Remote sync: <code>bob-log pull/push</code> for true multi-machine coordination",
+        "Conflict detection when two agents write the same file concurrently",
+        "VS Code extension: sidebar surfacing the shadow branch without a browser",
+        "LLM summarisation: <code>bob-log summarise</code> -- compress old entries",
     ]:
         s.append(bul(item))
-    s.append(sp(0.08))
+    s.append(sp(0.05))
 
     # Footer credits bar
     fd = [[
