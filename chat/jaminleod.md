@@ -373,3 +373,15 @@ The shadow branch is live and capturing every turn. The hooks are writing clean 
 Ready for a commit message, then Sub-Task 8 (the `log` and `diff` commands)?
 
 ---
+
+## Entry-023 - user-prompt
+**Timestamp:** 2026-11-24T18:49:30Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** 8606d5cc441ea48f44da5e843fb64605
+
+Why is the styling still doing this?
+
+'Timestamp: 2026-11-24T18:45:16Z Author: jaminleod Type: user-prompt Session: 8606d5cc441ea48f44da5e843fb64605' it's in a <p> tag before the chat. It should just be styled. jaminleod text atop it like a message. It shows a user author badge on the left but it is incredibly ugly.
+
+---
