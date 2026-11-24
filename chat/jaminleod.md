@@ -172,3 +172,8 @@ Here's how I see the full picture now:
 The skill is what turns this from "tooling that could coordinate" into "agents that actually coordinate." It tells Bob: *during a session, periodically check if any new commits appeared on `bob-context` since session start, and surface them.* That's the synchronous feel you're describing — both agents working and each one's Bob is aware of what the other is doing.
 
 Shall I write all of this into an updated plan file — the viewer fixes as one set of sub-tasks, and the coordination layer (log/diff/SessionStart hook/skill) as another?
+
+---
+**user-prompt** | 2026-11-24T18:22:27Z | author: `jaminleod` | session: `8606d5cc441ea48f44da5e843fb64605`
+
+Yes add these things to the plan. We can do this now.
