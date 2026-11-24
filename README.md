@@ -71,20 +71,13 @@ The viewer is the read surface. The real product is the **shadow branch**: a git
 
 ---
 
-## Install
+## Install & team setup
 
-### 1. Clone or copy the files
+### 1. Clone the repo
 
 ```sh
-git clone <repo> ~/projects/ibmbob
-cd ~/projects/ibmbob
-```
-
-The only files you need are:
-```
-bob_log.py          # Core CLI
-bob-log-hook.py     # Bob hook wrapper
-viewer.html         # Browser viewer
+git clone https://github.com/alexvu31/minhnions-ibm-hackathon
+cd minhnions-ibm-hackathon
 ```
 
 ### 2. Initialise the shadow branch
@@ -93,10 +86,20 @@ viewer.html         # Browser viewer
 python3 bob_log.py init
 ```
 
-This creates the `bob-context` orphan branch with an initial `README.md` placeholder.
+This creates the `bob-context` orphan branch locally.
 Running `init` again is safe — it is idempotent.
 
-### 3. Configure the Bob hooks
+### 3. Push the shadow branch to GitHub
+
+The shadow branch needs to be on GitHub so teammates can fetch it:
+
+```sh
+git push origin bob-context
+```
+
+> **First person to set up** does steps 1–3. Everyone else just clones and skips to step 4 — the shadow branch is already on GitHub.
+
+### 4. Configure the Bob hooks
 
 Create (or extend) `.bob/settings.json` in your project root:
 
@@ -106,19 +109,52 @@ Create (or extend) `.bob/settings.json` in your project root:
     {
       "event": "Stop",
       "type": "command",
-      "command": "python3 /path/to/ibmbob/bob-log-hook.py"
+      "command": "python3 /absolute/path/to/bob-log-hook.py"
     },
     {
       "event": "UserPromptSubmit",
       "type": "command",
-      "command": "python3 /path/to/ibmbob/bob-log-hook.py"
+      "command": "python3 /absolute/path/to/bob-log-hook.py"
     }
   ]
 }
 ```
 
-Replace `/path/to/ibmbob/` with the absolute path to this repo.
-Bob will now automatically call `bob-log-hook.py` on every turn.
+Replace `/absolute/path/to/` with the path to your clone. On the hackathon environment this is `/home/$USER/projects/ibmbob/`.
+
+Bob will now capture every turn automatically.
+
+### 5. Dogfood: see your own session in the viewer
+
+Start the live server in one terminal:
+
+```sh
+python3 bob_log.py serve
+```
+
+Open `http://localhost:4242` in your browser. As you work with Bob, entries appear within one second.
+
+### 6. Share your session with your teammate (async)
+
+After a session, push the shadow branch so your teammate can see it:
+
+```sh
+git push origin bob-context
+```
+
+Your teammate pulls it and sees your full session:
+
+```sh
+git fetch origin bob-context:bob-context
+python3 bob_log.py serve
+# Open http://localhost:4242 — their All Chats tab now includes your session
+```
+
+### 7. Watch a teammate's session live (sync)
+
+Both teammates run `bob-log serve` on their own machines. As long as one of you pushes the shadow branch periodically (or sets up a push hook), the other's viewer will show new entries.
+
+For fully live sync, the `SessionStart` hook (see stretch goals) handles the fetch automatically on each new Bob session.
 
 ---
 
