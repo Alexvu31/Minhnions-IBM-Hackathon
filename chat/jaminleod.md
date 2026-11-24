@@ -663,3 +663,13 @@ Both are now browsable in the viewer when you click their sidebar entries. `CONT
 - Entry format example updated from the old pipe-delimited format to the current `## Entry-NNN` format
 
 ---
+
+## Entry-039 - user-prompt
+**Timestamp:** 2026-11-24T19:19:54Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** f7f23ca4e278d3746ce170b98d1796ec
+
+Can we remove the ability to make a directory like NOTES/? It's unnesscary, I think for now we should focus on flat file structure and it's easier for AI. Great job on this, looks good to me. Also chats are in a 'chats' folder but contain README & CONTEXT... It also shows 'jaminleod.md'... If we do have a user chat selector, make it so that it doesn't show md. But I think the filters could do the same thing with all chat. Also remove 's1...' it's fake. Then we can commit
+
+---
