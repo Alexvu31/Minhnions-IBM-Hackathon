@@ -52,3 +52,8 @@ Closes Sub-Task 3. Provides the export format Alex needs for Sub-Task 4.
 ```
 git tag -a v0.3-sub-task-3 -m "Sub-Task 3 complete: hook wrapper + settings + export-json"
 ```
+
+---
+**user-prompt** | 2026-11-24T17:08:36Z | author: `jaminleod` | session: `8606d5cc441ea48f44da5e843fb64605`
+
+Anything else for us to do?
