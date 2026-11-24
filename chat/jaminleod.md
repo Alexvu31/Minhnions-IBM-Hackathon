@@ -853,3 +853,13 @@ Done — `a00969a`. What changed:
 - **"Why it exists"** bullets tightened — removed the single-dev "Team-friendly" bullet and replaced with "Git as the safety net" to emphasise the durability angle
 
 ---
+
+## Entry-051 - user-prompt
+**Timestamp:** 2026-11-24T19:35:46Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** f7f23ca4e278d3746ce170b98d1796ec
+
+We need to be able to explain why this UI & tool is not just a glorified chatbot UI
+
+---
