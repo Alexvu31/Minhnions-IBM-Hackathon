@@ -102,3 +102,16 @@ The PDF must show how we meaningfully used IBM Bob. Evidence to capture:
 
 ---
 
+
+## Entry-006 — Environment & Access Status
+**Date:** 2026-11-24
+**Author:** jaminleod
+**Type:** technical-note
+
+- Git repo initialised at `/home/jaminleod/projects/ibmbob`
+- alexvu31 has access to the `main` branch
+- `jq` is available in the dev environment — hook scripts can use it for JSON parsing
+- Author identifiers to use in log entries: `jaminleod` (Benjamin) and `alexvu31`
+- Sub-Task 1 (repo init) is complete — git is live
+
+---

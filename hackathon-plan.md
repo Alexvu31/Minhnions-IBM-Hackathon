@@ -22,12 +22,12 @@
 
 ## Sub-Task 1 — Repo & Shadow Branch Init
 
-**Status:** [ ] pending
+**Status:** [x] done
 
 **Intent:** Establish the git repo and create the `bob-context` orphan branch so the shadow branch exists before any hook tries to write to it.
 
 **Expected Outcomes:**
-- `git init` run in `/home/jaminleodleod/projects/ibmbob`
+- `git init` run in `/home/jaminleod/projects/ibmbob`
 - An orphan branch `bob-context` exists with an empty initial commit
 - The working tree returns to `main` after setup
 - A `.gitignore` excludes any build artifacts
