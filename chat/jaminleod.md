@@ -451,3 +451,13 @@ Done. Here's what was added:
 Ready to implement when you switch to agent mode — start with Sub-Task 7b?
 
 ---
+
+## Entry-011 - user-prompt
+**Timestamp:** 2026-11-24T18:37:02Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** 8606d5cc441ea48f44da5e843fb64605
+
+Make a commit message for this before I do any work
+
+---
