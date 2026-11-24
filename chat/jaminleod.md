@@ -568,3 +568,13 @@ CONTEXT.md: add Entry-010 session handoff (7b/7c complete, next: Sub-Task 8)
 ```
 
 ---
+
+## Entry-035 - user-prompt
+**Timestamp:** 2026-11-24T19:05:11Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** f7f23ca4e278d3746ce170b98d1796ec
+
+Okay I did the commit. I'd like to do more UI changes, what other things are waiting for us? And I was wondering about the HTML because it looked as though the python just wrote the html by-hand with a template in the code rather than another file. Which maybe we should do the for the final to condense it to one 'binary' (python script in this case)
+
+---
