@@ -359,3 +359,48 @@ The chat simply doesn't look like a chat. It looks like stacked cards, like in o
 Atop of that, I want the chats to be filtered rather than just on the right sidebar. We can have a file viewer there, but the chat should be integral or something. And having tabs to have multiple windows open with different filters would be useful too, like one user vs another or different sessions. Also it feels like we shouldn't have a html page only; let the html page act as the scaffolding, but bob-log serve should allow you to see progressive updates as they come in
 
 ---
+
+## Entry-008 - bob-response
+**Timestamp:** 2026-11-24T18:35:20Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** 8606d5cc441ea48f44da5e843fb64605
+
+Here's the full picture before I write the plan:
+
+---
+
+```mermaid
+flowchart LR
+    A[bob-log serve\nPython SSE server] -->|GET /api/export| B[export-json live]
+    A -->|GET /api/stream SSE| C[browser EventSource]
+    C -->|new-data event| D[viewer.html re-renders]
+    D --> E[Tab bar\nAll · jaminleod · alexvu31]
+    E --> F[Chat panel\nChatGPT-style bubbles\nIBM Carbon blue]
+    D --> G[File tabs\nopen from sidebar]
+```
+
+**Four distinct areas of work:**
+
+**Sub-Task 7b — Chat UI redesign** (`viewer.html`)
+- Replace stacked cards with ChatGPT-style bubbles: user right-aligned IBM Blue bubble, AI left-aligned light grey background, no borders
+- IBM Carbon palette: `#0F62FE` user bubble, `#001141` header, `#F4F4F4` AI bubble
+- Tabbed layout across top — "Chat" tab is always first, file tabs open alongside it, closeable
+- Chat panel has a filter button (funnel icon) that opens a dropdown: filter by author, by session, or both
+- File tree becomes a narrow icon sidebar — clicking a file opens it as a new tab
+- Tabs are dynamically generated from loaded data (one "All Chats" tab, one per author)
+
+**Sub-Task 7c — `bob-log serve`** (`bob_log.py` + `viewer.html`)
+- New `serve [--port N]` subcommand in `bob_log.py`
+- Starts `http.server` on localhost, serves `viewer.html` at `/`
+- `/api/export` — runs `export-json` logic and returns JSON
+- `/api/stream` — SSE endpoint; watches `bob-context` HEAD SHA every second, pushes a `new-data` event when it changes
+- `viewer.html` detects if served over HTTP vs opened as a file — if HTTP, connects `EventSource` to `/api/stream` and re-fetches `/api/export` on `new-data`; if file, falls back to the existing JSON file picker
+
+---
+
+That's two clean sub-tasks. The styling redesign (7b) is entirely in `viewer.html`. The serve command (7c) touches `bob_log.py` and adds a small server block plus the SSE client logic to `viewer.html`.
+
+Shall I write these as Sub-Tasks 7b and 7c into [`hackathon-plan.md`](hackathon-plan.md) now?
+
+---
