@@ -57,3 +57,22 @@ git tag -a v0.3-sub-task-3 -m "Sub-Task 3 complete: hook wrapper + settings + ex
 **user-prompt** | 2026-11-24T17:08:36Z | author: `jaminleod` | session: `8606d5cc441ea48f44da5e843fb64605`
 
 Anything else for us to do?
+
+---
+**bob-response** | 2026-11-24T17:08:40Z | author: `jaminleod` | session: `8606d5cc441ea48f44da5e843fb64605`
+
+Looking at the plan, your side (jaminleod) is fully done:
+
+- ✅ Sub-Task 1 — Shadow branch init
+- ✅ Sub-Task 2 — `bob_log.py` CLI
+- ✅ Sub-Task 3 — Hook config
+
+What's left:
+
+| Sub-Task | Owner | Status |
+|---|---|---|
+| 4 — HTML Viewer | alexvu31 | Pending — he can start now, you've given him the JSON format |
+| 5 — Tests & README | Both | Pending — you can start `test_bob_log.py` and the README independently of Alex |
+| 6 — PDF Submission | Both | Pending — blocked until 4 & 5 are done |
+
+**The only thing worth doing now on your side is Sub-Task 5** — the test suite and README. Neither depends on Alex finishing the viewer. Want me to start on that?
