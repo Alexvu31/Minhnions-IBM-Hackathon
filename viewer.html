@@ -735,8 +735,9 @@ const DEMO_DATA = {
 
 function loadDemo() { loadExport(DEMO_DATA, 'bob-context-export.json'); }
 
-// Auto-load demo if ?demo in URL
-if (location.search.includes('demo')) loadDemo();
+// Always pre-load the current export on startup.
+// The user can still load a different file via "Load another" → file picker / drag-and-drop.
+loadDemo();
 </script>
 </body>
 </html>
