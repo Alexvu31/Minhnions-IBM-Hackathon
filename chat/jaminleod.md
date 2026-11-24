@@ -730,3 +730,23 @@ Covers:
 - **Future ideas** — including the thought traces note you mentioned (surfacing AI reasoning as a collapsible "thinking" bubble)
 
 ---
+
+## Entry-043 - user-prompt
+**Timestamp:** 2026-11-24T19:28:52Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** f7f23ca4e278d3746ce170b98d1796ec
+
+You removed all filters for sessions. Literally just got rid of the help span for the session. That's not what I was asking;
+
+What is the architecture?
+jaminleod1h ago
+
+Shadow branch + git plumbing + hooks + viewer.
+jaminleod1h ago
+
+Can you show me the write command?
+
+These messages are fake, from a 'session' called 's1...' that is not in the repo. Please remove it. From the chat data, it seems like it was added as a test
+
+---
