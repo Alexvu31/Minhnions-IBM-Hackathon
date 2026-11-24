@@ -433,3 +433,13 @@ The layout is now:
 Run `python3 bob_log.py serve` to see it live.
 
 ---
+
+## Entry-027 - user-prompt
+**Timestamp:** 2026-11-24T18:55:01Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** 8606d5cc441ea48f44da5e843fb64605
+
+Whilst your at it with the underscores you can also make sure we break any html dom elements within the actual chat messages so it doesn't break styling
+
+---
