@@ -347,3 +347,15 @@ git tag -a v0.4-sub-task-7 -m "Sub-Task 7 complete: viewer rendering fixes + All
 Now — what's your vision for the styling? Walk me through it and I'll implement exactly what you want.
 
 ---
+
+## Entry-007 - user-prompt
+**Timestamp:** 2026-11-24T18:32:12Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** 8606d5cc441ea48f44da5e843fb64605
+
+The chat simply doesn't look like a chat. It looks like stacked cards, like in old forums. Many people are used to the user being styled differently the agent, and the timestamp, author, type, and session is just in plain text, not styled properly. We should be using the type and author to do some styling, like responses looking like an ai response on a normal ai chatbot site, and the user having it's own styling. Basically, this can't be a glorified file printer. It needs to be styled.
+
+Atop of that, I want the chats to be filtered rather than just on the right sidebar. We can have a file viewer there, but the chat should be integral or something. And having tabs to have multiple windows open with different filters would be useful too, like one user vs another or different sessions. Also it feels like we shouldn't have a html page only; let the html page act as the scaffolding, but bob-log serve should allow you to see progressive updates as they come in
+
+---
