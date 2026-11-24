@@ -213,3 +213,62 @@ Every chat turn during the build was auto-captured by the hooks Bob helped write
 
 ---
 
+
+## Entry-010 — Session Handoff: Sub-Tasks 7b/7c Complete, Resuming at 8
+**Date:** 2026-11-24
+**Author:** jaminleod
+**Type:** handoff
+
+### What was completed this session
+
+**Sub-Task 7b — Viewer Chat UI Redesign (complete)**
+- Full IBM Carbon Design palette: `#0F62FE` blue, `#001141` navy header, `#F4F4F4` AI bubbles
+- ChatGPT-style bubbles: user right-aligned IBM Blue, AI left-aligned grey, no card borders
+- `.msg-col` wrapper keeps bubble + meta aligned to bubble width — no more crushed-left badges
+- Author name below each bubble: IBM Blue for AI responses, gray for user prompts
+- Relative timestamps with absolute ISO on hover; short session ID in monospace
+- Tabbed layout: "💬 All Chats" always first (uncloseable), per-author tabs from sidebar, file tabs
+- Filter button per chat tab — author + session checkboxes, live without re-parse
+- Collapsed icon sidebar (44px), hover-expands to 220px
+- Session dividers removed (too noisy in All Chats view across multiple contributors)
+- `_underscore_` italic regex tightened — file paths and session IDs no longer get `<em>`-wrapped
+- All HTML in chat messages is escaped before Markdown processing — DOM injection not possible
+
+**Sub-Task 7c — `bob-log serve` (complete)**
+- `bob-log serve [--port N]` starts `ThreadingHTTPServer` on `localhost:4242`
+- `GET /` → `viewer.html`, `GET /api/export` → live JSON, `GET /api/stream` → SSE
+- Viewer auto-detects HTTP vs `file:` protocol; in HTTP mode skips file picker and auto-loads
+- SSE pushes `new-data` within 1 second of any shadow-branch write
+- No auto-open (xdg-open not available in WSL); URL printed to terminal
+
+**Parser fix**
+- Root cause: `**Timestamp:**` uses `**Key:**` format (colon inside `**`), regex had colon outside
+- Fix: `\*\*([^*]+)\*\*:\s*` → `\*\*([^*]+):\*\*\s*`
+- Shadow branch cleaned: old pipe-delimited entries removed, `chat/jaminleod.md` starts at Entry-001
+
+**Dogfooding**
+- Shadow branch is now the primary data source — `bob-log serve` reads live from `bob-context`
+- All hook entries (UserPromptSubmit + Stop) are writing to `chat/jaminleod.md` in real time
+- Run `python3 bob_log.py serve` and open `http://localhost:4242` to see the live session
+
+### Next session: start here
+
+**Sub-Task 8 — Coordination CLI Commands** (`bob_log.py`)
+- Add `bob-log log [--since <sha>] [path]` — commit history with optional SHA range filter
+- Add `bob-log diff <path>` — unified diff between last two commits touching a file
+- These are the building blocks for Sub-Task 9 (SessionStart hook + Bob skill)
+
+**Sub-Task 9 — SessionStart Hook + Bob Skill**
+- `SessionStart` handler in `bob-log-hook.py`: pull → read cursor → log since cursor → summarise → push cursor → emit `additionalContext`
+- `bob-log pull` / `bob-log push` as core CLI commands (no-op if no remote)
+- `.bob/skills/bob-log/SKILL.md` — teaches Bob to use `bob-log` commands proactively
+
+**Key files:**
+- `bob_log.py` — CLI engine (init/read/write/append/commit/ls/export/export-json/serve)
+- `bob-log-hook.py` — hook wrapper (Stop + UserPromptSubmit → chat/$USER.md)
+- `.bob/settings.json` — hook config
+- `viewer.html` — full IBM Carbon chat UI, served by `bob-log serve`
+- `hackathon-plan.md` — full plan with all sub-task status
+
+---
+

@@ -339,7 +339,7 @@
 
 ## Sub-Task 7b — Viewer Chat UI Redesign
 
-**Status:** [ ] pending
+**Status:** [x] done
 
 **Intent:** Replace the stacked card layout with a proper chat interface styled with IBM Carbon Design. The viewer should feel like a real AI chat product, not a file printer.
 
@@ -375,7 +375,7 @@
 
 ## Sub-Task 7c — `bob-log serve` Live Server
 
-**Status:** [ ] pending
+**Status:** [x] done
 
 **Intent:** Add a `bob-log serve` subcommand that starts a local HTTP server so the viewer updates in real time as new commits land on the shadow branch — no manual re-export and file reload required.
 

@@ -20,6 +20,9 @@ import json
 import os
 import sys
 import subprocess
+import time
+import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path, PurePosixPath
 
 BRANCH = "bob-context"
@@ -354,6 +357,98 @@ def cmd_export_json(args) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Serve command
+# ---------------------------------------------------------------------------
+
+def _export_json_bytes() -> bytes:
+    """Return the export-json payload as UTF-8 bytes (for the HTTP server)."""
+    if not _branch_exists():
+        return json.dumps({"exported_at": "", "branch": BRANCH, "files": {}}).encode("utf-8")
+    import datetime
+    result = _git("ls-tree", "-r", "--name-only", BRANCH)
+    paths = [p for p in result.stdout.splitlines() if p.strip()]
+    files = {path: _read_blob(path) for path in paths}
+    exported_at = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    payload = json.dumps({"exported_at": exported_at, "branch": BRANCH, "files": files},
+                         ensure_ascii=True, indent=2)
+    return payload.encode("utf-8")
+
+
+def cmd_serve(args) -> None:
+    """Start a local HTTP server that serves viewer.html with live SSE updates."""
+    port = args.port
+    viewer_path = Path(__file__).parent / "viewer.html"
+
+    if not viewer_path.exists():
+        print(f"Error: viewer.html not found at {viewer_path}", file=sys.stderr)
+        sys.exit(1)
+
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, fmt, *a):
+            pass  # suppress default access log
+
+        def do_GET(self):
+            if self.path in ("/", "/index.html"):
+                self._serve_file(viewer_path.read_bytes(), "text/html; charset=utf-8")
+            elif self.path == "/api/export":
+                data = _export_json_bytes()
+                self._serve_bytes(data, "application/json")
+            elif self.path == "/api/stream":
+                self._serve_sse()
+            else:
+                self.send_response(404)
+                self.end_headers()
+
+        def _serve_file(self, data: bytes, ctype: str):
+            self.send_response(200)
+            self.send_header("Content-Type", ctype)
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+
+        def _serve_bytes(self, data: bytes, ctype: str):
+            self._serve_file(data, ctype)
+
+        def _serve_sse(self):
+            self.send_response(200)
+            self.send_header("Content-Type", "text/event-stream")
+            self.send_header("Cache-Control", "no-cache")
+            self.send_header("X-Accel-Buffering", "no")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            last_sha = ""
+            ping_counter = 0
+            try:
+                while True:
+                    current_sha = _git("rev-parse", BRANCH, check=False).stdout.strip()
+                    if current_sha != last_sha:
+                        last_sha = current_sha
+                        self.wfile.write(b"data: new-data\n\n")
+                        self.wfile.flush()
+                    ping_counter += 1
+                    if ping_counter >= 15:
+                        self.wfile.write(b": ping\n\n")
+                        self.wfile.flush()
+                        ping_counter = 0
+                    time.sleep(1)
+            except (BrokenPipeError, ConnectionResetError):
+                pass  # client disconnected
+
+    url = f"http://localhost:{port}"
+    print(f"Bob Logbook server running at {url}")
+    print(f"Open in your browser: {url}")
+    print("Press Ctrl+C to stop.\n")
+
+    server = ThreadingHTTPServer(("localhost", port), Handler)
+
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nShutting down.")
+        server.server_close()
+
+
+# ---------------------------------------------------------------------------
 # CLI wiring
 # ---------------------------------------------------------------------------
 
@@ -407,6 +502,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="Destination .json path (omit to print to stdout)",
     )
 
+    # serve
+    p_serve = sub.add_parser(
+        "serve",
+        help="Start a local HTTP server with live SSE updates (default port 4242)",
+    )
+    p_serve.add_argument(
+        "--port", "-p",
+        type=int,
+        default=4242,
+        help="Port to listen on (default: 4242)",
+    )
+
     return parser
 
 
@@ -419,6 +526,7 @@ HANDLERS = {
     "ls": cmd_ls,
     "export": cmd_export,
     "export-json": cmd_export_json,
+    "serve": cmd_serve,
 }
 
 
