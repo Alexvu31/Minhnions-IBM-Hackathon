@@ -16,6 +16,7 @@ Usage:
 """
 
 import argparse
+import json
 import os
 import sys
 import subprocess
@@ -311,6 +312,35 @@ def cmd_export(args) -> None:
     print(f"Exported '{args.path}' → '{dest}'")
 
 
+def cmd_export_json(args) -> None:
+    """Dump every file on bob-context to a JSON file for the HTML viewer.
+
+    Output format:
+        { "files": { "<path>": "<content>", ... } }
+    """
+    if not _branch_exists():
+        print(f"Error: branch '{BRANCH}' does not exist. Run `bob-log init` first.", file=sys.stderr)
+        sys.exit(1)
+
+    # Walk the entire tree recursively
+    result = _git("ls-tree", "-r", "--name-only", BRANCH)
+    paths = [p for p in result.stdout.splitlines() if p.strip()]
+
+    files = {}
+    for path in paths:
+        files[path] = _read_blob(path)
+
+    payload = json.dumps({"files": files}, ensure_ascii=False, indent=2)
+
+    if args.dest:
+        dest = Path(args.dest)
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(payload, encoding="utf-8")
+        print(f"Exported {len(files)} file(s) → '{dest}'")
+    else:
+        sys.stdout.write(payload + "\n")
+
+
 # ---------------------------------------------------------------------------
 # CLI wiring
 # ---------------------------------------------------------------------------
@@ -353,6 +383,18 @@ def build_parser() -> argparse.ArgumentParser:
     p_export.add_argument("path", help="Relative path within bob-context")
     p_export.add_argument("dest", help="Destination path in the working tree")
 
+    # export-json
+    p_export_json = sub.add_parser(
+        "export-json",
+        help="Dump all bob-context files to a JSON file for the HTML viewer",
+    )
+    p_export_json.add_argument(
+        "dest",
+        nargs="?",
+        default="",
+        help="Destination .json path (omit to print to stdout)",
+    )
+
     return parser
 
 
@@ -364,6 +406,7 @@ HANDLERS = {
     "commit": cmd_commit,
     "ls": cmd_ls,
     "export": cmd_export,
+    "export-json": cmd_export_json,
 }
 
 

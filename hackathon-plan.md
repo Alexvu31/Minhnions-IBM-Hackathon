@@ -95,7 +95,7 @@
 
 ## Sub-Task 3 — Bob Hook Configuration
 
-**Status:** [ ] pending
+**Status:** [x] done
 
 **Intent:** Wire `bob_log.py` into Bob's lifecycle so chat context is captured automatically on every turn, with zero developer interaction.
 
