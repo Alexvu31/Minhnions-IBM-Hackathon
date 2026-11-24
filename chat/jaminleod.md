@@ -25,3 +25,8 @@ Sub-Tasks 2 and 3 are both done. Here's a summary of everything added in this se
 - Both hooks exit 0 (fail-open — never block Bob)
 
 Ready for you to commit and tag. After that, Sub-Task 4 is on Alex, and Sub-Task 5 (tests + README) is next for you.
+
+---
+**user-prompt** | 2026-11-24T17:06:15Z | author: `jaminleod` | session: `8606d5cc441ea48f44da5e843fb64605`
+
+Give me commit and tag message
