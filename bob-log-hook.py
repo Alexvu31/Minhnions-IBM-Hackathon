@@ -35,14 +35,33 @@ def bob_log(*args: str) -> int:
     return result.returncode
 
 
-def format_entry(event: str, author: str, session_id: str, message: str) -> str:
-    """Format a single log entry in a consistent Markdown block."""
+def _bob_log_read(path: str) -> str:
+    """Read a file from the shadow branch and return its content, or '' if absent."""
+    result = subprocess.run(
+        [sys.executable, BOB_LOG, "read", path],
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout if result.returncode == 0 else ""
+
+
+def _count_entries(content: str) -> int:
+    """Count existing ## Entry- headings in a file's content."""
+    return sum(1 for line in content.splitlines() if line.startswith("## Entry-"))
+
+
+def format_entry(event: str, author: str, session_id: str, message: str, entry_num: int) -> str:
+    """Format a single log entry in ## Entry-NNN format expected by the viewer parser."""
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    divider = "---"
+    num = str(entry_num).zfill(3)
     return (
-        f"\n{divider}\n"
-        f"**{event}** | {ts} | author: `{author}` | session: `{session_id}`\n\n"
-        f"{message}\n"
+        f"\n## Entry-{num} - {event}\n"
+        f"**Timestamp:** {ts}\n"
+        f"**Author:** {author}\n"
+        f"**Type:** {event}\n"
+        f"**Session:** {session_id}\n"
+        f"\n{message}\n"
+        f"\n---\n"
     )
 
 
@@ -62,14 +81,18 @@ def main() -> None:
         message = payload.get("last_assistant_message") or ""
         if not message:
             sys.exit(0)
-        entry = format_entry("bob-response", author, session_id, message)
+        existing = _bob_log_read(chat_path)
+        entry_num = _count_entries(existing) + 1
+        entry = format_entry("bob-response", author, session_id, message, entry_num)
         bob_log("append", chat_path, entry)
 
     elif event == "UserPromptSubmit":
         message = payload.get("prompt") or ""
         if not message:
             sys.exit(0)
-        entry = format_entry("user-prompt", author, session_id, message)
+        existing = _bob_log_read(chat_path)
+        entry_num = _count_entries(existing) + 1
+        entry = format_entry("user-prompt", author, session_id, message, entry_num)
         # NOTE: stdout must stay empty — it would be injected into the model.
         bob_log("append", chat_path, entry)
 

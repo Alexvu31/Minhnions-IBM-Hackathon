@@ -160,3 +160,115 @@ The `bob-log export` command (when called without a specific path) will produce 
 alexvu31: the viewer should accept a file with this exact shape. The keys under `"files"` are the relative paths on the shadow branch. Files under `chat/` get the timeline renderer; all others get the plain Markdown renderer.
 
 ---
+
+## Entry-009 — Full Bob Usage Evidence for PDF Submission
+**Date:** 2026-11-24
+**Author:** jaminleod
+**Type:** pdf-evidence
+
+This entry documents every meaningful way IBM Bob was used during the build. The PDF must address all four scoring criteria — this entry maps each piece of evidence to the relevant criterion.
+
+---
+
+### How We Used Bob (chronological)
+
+**1. Idea generation and scoping (Plan mode)**
+Bob ran a structured planning session using the `create-plan` skill. It researched the codebase, asked clarifying questions, and produced `hackathon-plan.md` — a fully decomposed 9-sub-task plan with intent, expected outcomes, todo lists, and relevant context for each sub-task. The plan was refined iteratively in the same session based on jaminleod's feedback.
+
+**2. Sub-Task 2 — `bob_log.py` Core CLI (Agent mode)**
+Bob implemented the entire Python CLI from scratch: all 8 subcommands (`init`, `read`, `write`, `append`, `commit`, `ls`, `export`, `export-json`), the recursive `_make_tree_with()` git plumbing function, path-jail security, and the `bob-log` bash wrapper. It also ran live smoke tests in-session and cleaned up test commits from the shadow branch.
+
+**3. Sub-Task 3 — Hook configuration (Agent mode)**
+Bob wrote `bob-log-hook.py` and `.bob/settings.json`. It tested both hooks by piping representative JSON payloads and verified stdout was clean on `UserPromptSubmit`. It also added `export-json` to the CLI on the fly when it identified that Alex needed a JSON format for the viewer.
+
+**4. Sub-Task 7 — Viewer fixes (Agent mode)**
+Bob identified the entry format mismatch between the hook and viewer parser, rewrote `format_entry()`, added Markdown rendering to card bodies, and implemented the All Contributors virtual view — all without breaking existing demo data.
+
+**5. Plan extensions — coordination layer and viewer redesign (Plan mode)**
+Bob proposed and scoped Sub-Tasks 7b, 7c, 8, and 9 based on jaminleod's high-level vision of "agents coordinating via the shadow branch." It caught the missing `git pull` before log reads, proposed SSE over WebSockets for the live server, and defined the per-author cursor state model.
+
+**6. The tool itself is evidence**
+Every chat turn during the build was auto-captured by the hooks Bob helped write. The shadow branch (`bob-context`) contains the full session log. Running `bob-log export-json` produces a JSON snapshot; opening it in `viewer.html` renders the entire build timeline as a ChatGPT-style chat interface.
+
+---
+
+### Mapping to Scoring Criteria
+
+| Criterion | Evidence |
+|---|---|
+| **Innovation & Creativity (25)** | Shadow branch as AI working memory is novel; `SessionStart` hook injects git-sourced context into the model; multi-agent coordination via git is a new pattern |
+| **Relevance to Challenge (25)** | Directly extends IBM Bob via its hook API; uses Bob's own lifecycle events; the tool dogfoods Bob — it was built entirely using Bob |
+| **Practicality & Feasibility (25)** | Python 3 stdlib only; no pip, no accounts, no external APIs; runs anywhere git + Python exist; `bob-log serve` gives a live dashboard in one command |
+| **Overall Quality & Presentation (25)** | IBM Carbon Design UI; ChatGPT-style chat bubbles; tabbed layout with per-author filters; SSE live updates; test suite; README; this CONTEXT.md is itself a demonstration |
+
+---
+
+### Key Quotes for PDF
+
+> "The shadow branch is not just a chat log — it is shared AI working memory. Any agent, in any session, on any machine, can read exactly what every other agent has done and left behind." — jaminleod planning session with Bob
+
+> "Bob caught the missing `git pull` before we even asked. We described the coordination model and Bob identified that without fetching first, the log command would only see local state." — jaminleod
+
+> "The tool is its own best demo. The viewer you're looking at was built by running `bob-log serve` on the branch that was written to while Bob was building it." — README
+
+---
+
+
+## Entry-010 — Session Handoff: Sub-Tasks 7b/7c Complete, Resuming at 8
+**Date:** 2026-11-24
+**Author:** jaminleod
+**Type:** handoff
+
+### What was completed this session
+
+**Sub-Task 7b — Viewer Chat UI Redesign (complete)**
+- Full IBM Carbon Design palette: `#0F62FE` blue, `#001141` navy header, `#F4F4F4` AI bubbles
+- ChatGPT-style bubbles: user right-aligned IBM Blue, AI left-aligned grey, no card borders
+- `.msg-col` wrapper keeps bubble + meta aligned to bubble width — no more crushed-left badges
+- Author name below each bubble: IBM Blue for AI responses, gray for user prompts
+- Relative timestamps with absolute ISO on hover; short session ID in monospace
+- Tabbed layout: "💬 All Chats" always first (uncloseable), per-author tabs from sidebar, file tabs
+- Filter button per chat tab — author + session checkboxes, live without re-parse
+- Collapsed icon sidebar (44px), hover-expands to 220px
+- Session dividers removed (too noisy in All Chats view across multiple contributors)
+- `_underscore_` italic regex tightened — file paths and session IDs no longer get `<em>`-wrapped
+- All HTML in chat messages is escaped before Markdown processing — DOM injection not possible
+
+**Sub-Task 7c — `bob-log serve` (complete)**
+- `bob-log serve [--port N]` starts `ThreadingHTTPServer` on `localhost:4242`
+- `GET /` → `viewer.html`, `GET /api/export` → live JSON, `GET /api/stream` → SSE
+- Viewer auto-detects HTTP vs `file:` protocol; in HTTP mode skips file picker and auto-loads
+- SSE pushes `new-data` within 1 second of any shadow-branch write
+- No auto-open (xdg-open not available in WSL); URL printed to terminal
+
+**Parser fix**
+- Root cause: `**Timestamp:**` uses `**Key:**` format (colon inside `**`), regex had colon outside
+- Fix: `\*\*([^*]+)\*\*:\s*` → `\*\*([^*]+):\*\*\s*`
+- Shadow branch cleaned: old pipe-delimited entries removed, `chat/jaminleod.md` starts at Entry-001
+
+**Dogfooding**
+- Shadow branch is now the primary data source — `bob-log serve` reads live from `bob-context`
+- All hook entries (UserPromptSubmit + Stop) are writing to `chat/jaminleod.md` in real time
+- Run `python3 bob_log.py serve` and open `http://localhost:4242` to see the live session
+
+### Next session: start here
+
+**Sub-Task 8 — Coordination CLI Commands** (`bob_log.py`)
+- Add `bob-log log [--since <sha>] [path]` — commit history with optional SHA range filter
+- Add `bob-log diff <path>` — unified diff between last two commits touching a file
+- These are the building blocks for Sub-Task 9 (SessionStart hook + Bob skill)
+
+**Sub-Task 9 — SessionStart Hook + Bob Skill**
+- `SessionStart` handler in `bob-log-hook.py`: pull → read cursor → log since cursor → summarise → push cursor → emit `additionalContext`
+- `bob-log pull` / `bob-log push` as core CLI commands (no-op if no remote)
+- `.bob/skills/bob-log/SKILL.md` — teaches Bob to use `bob-log` commands proactively
+
+**Key files:**
+- `bob_log.py` — CLI engine (init/read/write/append/commit/ls/export/export-json/serve)
+- `bob-log-hook.py` — hook wrapper (Stop + UserPromptSubmit → chat/$USER.md)
+- `.bob/settings.json` — hook config
+- `viewer.html` — full IBM Carbon chat UI, served by `bob-log serve`
+- `hackathon-plan.md` — full plan with all sub-task status
+
+---
+
