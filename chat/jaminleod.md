@@ -30,3 +30,25 @@ Ready for you to commit and tag. After that, Sub-Task 4 is on Alex, and Sub-Task
 **user-prompt** | 2026-11-24T17:06:15Z | author: `jaminleod` | session: `8606d5cc441ea48f44da5e843fb64605`
 
 Give me commit and tag message
+
+---
+**bob-response** | 2026-11-24T17:06:18Z | author: `jaminleod` | session: `8606d5cc441ea48f44da5e843fb64605`
+
+**Commit message:**
+```
+feat: add hook wrapper and export-json for Sub-Tasks 3 & 4
+
+- bob-log-hook.py: reads Bob JSON stdin, appends timestamped Markdown
+  entries to chat/$USER.md on the shadow branch for Stop and
+  UserPromptSubmit events; stdout stays empty on UserPromptSubmit
+- .bob/settings.json: wires Stop and UserPromptSubmit to the hook wrapper
+- bob_log.py: add export-json subcommand — dumps all shadow-branch files
+  as { "files": { "<path>": "<content>" } } JSON for the HTML viewer
+
+Closes Sub-Task 3. Provides the export format Alex needs for Sub-Task 4.
+```
+
+**Tag:**
+```
+git tag -a v0.3-sub-task-3 -m "Sub-Task 3 complete: hook wrapper + settings + export-json"
+```
