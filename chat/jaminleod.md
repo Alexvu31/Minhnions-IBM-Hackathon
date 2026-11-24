@@ -738,3 +738,13 @@ To clarify what actually happened across those two requests:
 **This request** — the actual ask: delete the 3 fake test entries (`Entry-001`/`002`/`003` with `Session: s1`) from `chat/jaminleod.md` on the shadow branch. Done — those 3 entries are gone, the remaining 40 real entries are renumbered starting at `Entry-001`, and the shadow branch has the clean commit `ceb29f8`.
 
 ---
+
+## Entry-042 - user-prompt
+**Timestamp:** 2026-11-24T19:29:46Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** f7f23ca4e278d3746ce170b98d1796ec
+
+But being able to filter sessions was a good thing not a bad one
+
+---
