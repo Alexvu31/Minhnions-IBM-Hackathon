@@ -239,10 +239,6 @@ html, body { height: 100%; font-family: "IBM Plex Sans", -apple-system, "Segoe U
 .msg-meta .author-name.ai-name { color: var(--ibm-blue-60); }
 .msg-meta .author-name.user-name { color: var(--ibm-gray-70); }
 .msg-meta .meta-time { color: var(--ibm-gray-40); }
-.msg-meta .meta-session {
-  font-size: 10px; color: var(--ibm-gray-40);
-  font-family: "IBM Plex Mono", Consolas, monospace;
-}
 
 /* ── Markdown inside bubbles ──────────────────────────────────────────────── */
 .md-view h1 { font-size: 17px; margin: 14px 0 6px; border-bottom: 1px solid rgba(0,0,0,.08); padding-bottom: 4px; }
@@ -454,7 +450,8 @@ function renderMarkdown(text) {
       .replace(/__([^_]+)__/g,"<strong>$1</strong>")
       .replace(/\*([^*\s][^*]*[^*\s]|\S)\*/g,"<em>$1</em>")
       .replace(/(^|[\s(>])_([^_\s][^_]*[^_\s]|[^_\s])_([\s,.!?)<]|$)/g,"$1<em>$2</em>$3")
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2">$1</a>');
+      // Render link text only — relative file hrefs don't resolve in the viewer
+      .replace(/\[([^\]]+)\]\([^)]+\)/g,'$1');
   }
 }
 
@@ -531,7 +528,7 @@ let _tabCounter = 0;
 // ── Tab engine ─────────────────────────────────────────────────────────────
 function createTab(label, type, opts = {}) {
   const id = "tab-" + (++_tabCounter);
-  _tabs.set(id, { label, type, ...opts, filter: { authors: null, sessions: null } });
+  _tabs.set(id, { label, type, ...opts, filter: { authors: null } });
   _renderTabBar();
   selectTab(id);
   return id;
@@ -600,13 +597,10 @@ function openFilter(tabId, anchorEl) {
   if (!tab || tab.type !== "chat") return;
   const dd = document.getElementById("filter-dropdown");
 
-  // Collect unique authors + sessions from this tab's entries
+  // Collect unique authors from this tab's entries (sessions removed from UI)
   const entries = tab.entries || [];
-  const authors  = [...new Set(entries.map(e => e.author).filter(Boolean))].sort();
-  const sessions = [...new Set(entries.map(e => e.session).filter(Boolean))].sort();
-
-  const curAuthors  = tab.filter.authors  || new Set(authors);
-  const curSessions = tab.filter.sessions || new Set(sessions);
+  const authors = [...new Set(entries.map(e => e.author).filter(Boolean))].sort();
+  const curAuthors = tab.filter.authors || new Set(authors);
 
   let html = "";
   if (authors.length) {
@@ -617,38 +611,24 @@ function openFilter(tabId, anchorEl) {
     }
     html += "</div>";
   }
-  if (sessions.length) {
-    if (authors.length) html += '<hr class="filter-divider">';
-    html += '<div class="filter-group"><div class="filter-group-label">Session</div>';
-    for (const s of sessions) {
-      const chk = curSessions.has(s) ? "checked" : "";
-      html += `<label class="filter-option"><input type="checkbox" data-kind="session" data-val="${escH(s)}" ${chk}> <code>${escH(s.slice(0,12))}…</code></label>`;
-    }
-    html += "</div>";
-  }
   if (!html) html = '<div style="padding:10px 14px; font-size:13px; color:var(--ibm-gray-70)">No filters available.</div>';
 
-  // Actions: apply live filter OR open as new tab
   html += `<div class="filter-actions">
     <button onclick="_applyFilterAsNewTab('${escH(tabId)}')">Open as new tab</button>
   </div>`;
 
   dd.innerHTML = html;
 
-  // Position below anchor
   const rect = anchorEl.getBoundingClientRect();
   dd.style.top  = (rect.bottom + 4) + "px";
   dd.style.left = rect.left + "px";
   dd.classList.add("open");
   _filterOpen = true;
 
-  // Live filter on checkbox change
   dd.querySelectorAll("input[type=checkbox]").forEach(cb => {
     cb.addEventListener("change", () => {
       const authBoxes = [...dd.querySelectorAll('[data-kind=author]')];
-      const sesBoxes  = [...dd.querySelectorAll('[data-kind=session]')];
-      tab.filter.authors  = authBoxes.length ? new Set(authBoxes.filter(c=>c.checked).map(c=>c.dataset.val)) : null;
-      tab.filter.sessions = sesBoxes.length  ? new Set(sesBoxes.filter(c=>c.checked).map(c=>c.dataset.val))  : null;
+      tab.filter.authors = authBoxes.length ? new Set(authBoxes.filter(c=>c.checked).map(c=>c.dataset.val)) : null;
       _renderContent();
     });
   });
@@ -660,20 +640,14 @@ function _applyFilterAsNewTab(tabId) {
 
   const dd = document.getElementById("filter-dropdown");
   const authBoxes = [...dd.querySelectorAll('[data-kind=author]')];
-  const sesBoxes  = [...dd.querySelectorAll('[data-kind=session]')];
-  const selAuthors  = authBoxes.length ? new Set(authBoxes.filter(c=>c.checked).map(c=>c.dataset.val)) : null;
-  const selSessions = sesBoxes.length  ? new Set(sesBoxes.filter(c=>c.checked).map(c=>c.dataset.val))  : null;
+  const selAuthors = authBoxes.length ? new Set(authBoxes.filter(c=>c.checked).map(c=>c.dataset.val)) : null;
 
   const filtered = (tab.entries || []).filter(e => {
-    if (selAuthors  && !selAuthors.has(e.author))   return false;
-    if (selSessions && !selSessions.has(e.session)) return false;
+    if (selAuthors && !selAuthors.has(e.author)) return false;
     return true;
   });
 
-  // Build a label from selected filters
-  const authLabel = selAuthors  ? [...selAuthors].join(", ")  : "all";
-  const sesLabel  = selSessions ? [...selSessions].map(s=>s.slice(0,8)).join(", ") : "";
-  const label     = "💬 " + authLabel + (sesLabel ? " · " + sesLabel : "");
+  const label = "💬 " + (selAuthors ? [...selAuthors].join(", ") : "all");
 
   document.getElementById("filter-dropdown").classList.remove("open");
   _filterOpen = false;
@@ -721,19 +695,9 @@ function _renderChat(content, tab) {
         toolbar += `<span class="filter-pill active">${escH(a)}</span>`;
     }
   }
-  // Active filter badges — sessions
-  if (tab.filter.sessions) {
-    const allSessions = [...new Set((tab.entries||[]).map(e=>e.session).filter(Boolean))];
-    if (tab.filter.sessions.size < allSessions.length) {
-      for (const s of tab.filter.sessions)
-        toolbar += `<span class="filter-pill active" title="${escH(s)}">${escH(s.slice(0,8))}…</span>`;
-    }
-  }
-
   // Chat messages
   const entries = (tab.entries || []).filter(e => {
-    if (tab.filter.authors  && !tab.filter.authors.has(e.author))   return false;
-    if (tab.filter.sessions && !tab.filter.sessions.has(e.session)) return false;
+    if (tab.filter.authors && !tab.filter.authors.has(e.author)) return false;
     return true;
   });
 
@@ -959,7 +923,7 @@ function loadExport(data) {
     for (const p of chatPaths) allEntries.push(...parseTimeline(_files[p]||""));
     allEntries.sort((a,b) => (a.timestamp||"").localeCompare(b.timestamp||""));
     const id = "tab-" + (++_tabCounter);
-    _tabs.set(id, { label: "💬 All Chats", type: "chat", path: "__all__", entries: allEntries, filter: { authors: null, sessions: null }, closeable: false });
+    _tabs.set(id, { label: "💬 All Chats", type: "chat", path: "__all__", entries: allEntries, filter: { authors: null }, closeable: false });
     _activeTab = id;
   }
 

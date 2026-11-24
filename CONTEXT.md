@@ -272,3 +272,80 @@ Every chat turn during the build was auto-captured by the hooks Bob helped write
 
 ---
 
+
+
+## Entry-011 — Session Handoff: Sub-Tasks 8 + Viewer Polish Complete, alexvu31 to do PDF
+**Date:** 2026-11-24
+**Author:** jaminleod
+**Type:** handoff
+
+### What was completed this session (since Entry-010)
+
+**Sub-Task 8 — Coordination CLI Commands (complete)**
+- `bob-log log [--since <sha>] [path]` — commit history, SHA-range and path filter
+- `bob-log diff <path>` — unified diff between last two commits touching a file
+- `bob-log delete <path>` — removes a file from bob-context via git plumbing; prunes empty dirs
+- `_check_path` now enforces flat structure: root files and `chat/*` only; arbitrary subdirectories rejected
+
+**Viewer polish (complete)**
+- Header bar removed entirely — brand + meta inline in tab bar row; no wasted vertical space
+- Floating load FAB (bottom-right pill) in `file:` mode; hidden in HTTP serve mode
+- Sidebar: per-author chat section removed; root files listed under "📄 Files" only
+- Chat tab labels: `.md` stripped (`jaminleod` not `jaminleod.md`)
+- Session IDs removed from every bubble and from filter dropdown — author filter only
+- Markdown links stripped to text only — relative `[file](file.md)` hrefs don't resolve in viewer
+- File history/diff view: `🕐 History (N)` button on file tabs opens per-commit diff timeline
+- Filter dropdown: "Open as new tab" button creates a fresh tab from current selection
+- Message count badge on every tab label: `💬 All Chats (42)`
+- Copy button on code blocks (hover to reveal)
+- `export-json` now includes `history` key: last 20 revisions per file with content
+
+**Shadow branch updated**
+- `notes/` directory removed
+- `CONTEXT.md` and `README.md` from main branch written to shadow branch (visible in viewer)
+
+**README updated**
+- Command table: `log`, `diff`, `serve`, `delete`
+- Viewer section: live mode (bob-log serve) as primary path
+- Entry format example updated to `## Entry-NNN` format
+
+### For alexvu31 — next steps
+
+**Sub-Task 10 — PDF Submission**
+The PDF is the final deliverable. Use `bob-log serve` and the viewer to screenshot the live session.
+
+Evidence to include:
+1. Screenshot of `viewer.html` showing real session entries from `chat/jaminleod.md`
+2. Screenshot of a file's History/diff view (shows the diff timeline feature)
+3. Screenshot of Filter → "Open as new tab" in action
+4. The exported `bob-context.md` or a snippet — proof the tool captured its own build
+5. Architecture diagram: hook → `bob_log.py` → shadow branch → `bob-log serve` → viewer
+
+PDF structure (4 pages max, ≥ 11pt):
+- **Page 1:** Problem + user story + solution overview + "dogfoods itself" angle
+- **Page 2:** Architecture + Bob usage evidence (how Bob built it)
+- **Page 3:** Key features with screenshots (viewer, diff view, filter)
+- **Page 4:** How to run + test results + team reflection
+
+To dogfood this process: use Bob to help draft the PDF content, so the PDF session itself appears in `chat/alexvu31.md` on the shadow branch.
+
+**Sub-Task 9 — SessionStart Hook + Skill (stretch, if time permits)**
+- `SessionStart` handler: pull → read cursor → summarise new commits → emit `additionalContext`
+- `.bob/skills/bob-log/SKILL.md` already exists; extend it with `log` and `diff` instructions
+- `bob-log pull` / `bob-log push` for remote sync (no-op if no remote)
+
+**Key files (current state):**
+- `bob_log.py` — CLI: init/read/write/append/commit/ls/export/export-json/log/diff/delete/serve
+- `bob-log-hook.py` — hook wrapper (Stop + UserPromptSubmit → `chat/$USER.md`)
+- `.bob/settings.json` — hook config (Stop + UserPromptSubmit wired)
+- `viewer.html` — IBM Carbon chat UI, served by `bob-log serve`
+- `hackathon-plan.md` — full plan; Sub-Tasks 1–8, 7b, 7c marked done
+- `CONTEXT.md` — this file; append new entries at the bottom
+
+**Future ideas (not in scope for hackathon):**
+- Surface AI reasoning/thought traces in the viewer as a collapsible "thinking" bubble
+- `bob-log pull` / `bob-log push` for multi-machine sync
+- Per-session timeline view (group bubbles by session ID into collapsible sections)
+- Syntax highlighting in code blocks (Prism.js or highlight.js)
+
+---
