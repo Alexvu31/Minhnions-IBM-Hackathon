@@ -254,3 +254,13 @@ Okay good, otherwise this would not make sense. Lets start with sub-task 7.
 What is the architecture?
 
 ---
+
+## Entry-002 - bob-response
+**Timestamp:** 2026-11-24T18:24:34Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** s1
+
+Shadow branch + git plumbing + hooks + viewer.
+
+---
