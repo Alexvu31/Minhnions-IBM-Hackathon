@@ -615,8 +615,21 @@ function buildSidebar(files) {
   for (const [path, content] of Object.entries(files)) {
     if (path.startsWith('chat/')) _counts[path] = parseChatEntries(content).length;
   }
+  // Combined count = sum of all chat entries
+  const combinedCount = Object.values(_counts).reduce((s, n) => s + n, 0);
 
   let html = '<div class="sidebar-label">bob-context branch</div>';
+
+  // ── Combined chat entry (always first) ──
+  html += `<div class="tree-section">
+    <div class="tree-folder">combined</div>
+    <div class="tree-file${_activeFile === COMBINED_PATH ? ' active' : ''}" data-path="${esc(COMBINED_PATH)}" onclick='openFile(${JSON.stringify(COMBINED_PATH)})'>
+      <span class="author-dot" style="background:linear-gradient(135deg,#2f81f7 50%,#7c5cd8 50%)"></span>
+      <span class="tree-file-name">all authors</span>
+      <span class="entry-pill">${combinedCount}</span>
+    </div>
+  </div>`;
+
   for (const [folder, paths] of Object.entries(folders)) {
     if (folder) html += `<div class="tree-section"><div class="tree-folder">${esc(folder)}</div>`;
     for (const p of paths) {
@@ -624,7 +637,7 @@ function buildSidebar(files) {
       const isChat = p.startsWith('chat/');
       const color  = isChat ? authorColor(fname.replace(/\.md$/,'')) : '#57606a';
       const count  = _counts[p];
-      html += `<div class="tree-file" data-path="${esc(p)}" onclick='openFile(${JSON.stringify(p)})'>
+      html += `<div class="tree-file${_activeFile === p ? ' active' : ''}" data-path="${esc(p)}" onclick='openFile(${JSON.stringify(p)})'>
         <span class="author-dot" style="background:${color}"></span>
         <span class="tree-file-name">${esc(fname)}</span>
         ${count !== undefined ? `<span class="entry-pill">${count}</span>` : ''}
@@ -635,17 +648,38 @@ function buildSidebar(files) {
   document.getElementById('sidebar').innerHTML = html;
 }
 
+let _activeFile = null;
+
 function openFile(path) {
-  document.querySelectorAll('.tree-file').forEach(el =>
-    el.classList.toggle('active', el.dataset.path === path));
-  const content = _files[path] || '';
-  const panel   = document.getElementById('content-panel');
+  _activeFile = path;
+  // Rebuild sidebar to reflect new active state
+  buildSidebar(_files);
+  const panel = document.getElementById('content-panel');
   panel.scrollTop = 0;
-  if (path.startsWith('chat/')) {
-    panel.innerHTML = renderTimeline(parseChatEntries(content), path);
+  if (path === COMBINED_PATH) {
+    const entries = buildCombinedEntries(_files);
+    panel.innerHTML = renderTimeline(entries, 'All authors (interleaved by time)');
+  } else if (path.startsWith('chat/')) {
+    panel.innerHTML = renderTimeline(parseChatEntries(_files[path] || ''), path);
   } else {
-    panel.innerHTML = renderMarkdown(content, path);
+    panel.innerHTML = renderMarkdown(_files[path] || '', path);
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Build the synthetic combined chat — merges all chat/ files sorted by timestamp
+// ─────────────────────────────────────────────────────────────────────────────
+const COMBINED_PATH = 'chat/~combined';
+
+function buildCombinedEntries(files) {
+  const all = [];
+  for (const [path, content] of Object.entries(files)) {
+    if (!path.startsWith('chat/') || path === COMBINED_PATH) continue;
+    for (const e of parseChatEntries(content)) all.push(e);
+  }
+  // Sort by ISO timestamp string (lexicographic works for ISO 8601)
+  all.sort((a, b) => (a.timestamp || '').localeCompare(b.timestamp || ''));
+  return all;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -666,10 +700,8 @@ function loadExport(json, label) {
   buildSidebar(_files);
   showWorkspace();
 
-  // Auto-open first chat file, else first file
-  const paths = Object.keys(_files);
-  const first = paths.find(p => p.startsWith('chat/')) || paths[0];
-  openFile(first);
+  // Auto-open combined view
+  openFile(COMBINED_PATH);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
