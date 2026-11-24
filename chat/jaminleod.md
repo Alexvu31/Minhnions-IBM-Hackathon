@@ -673,3 +673,26 @@ Both are now browsable in the viewer when you click their sidebar entries. `CONT
 Can we remove the ability to make a directory like NOTES/? It's unnesscary, I think for now we should focus on flat file structure and it's easier for AI. Great job on this, looks good to me. Also chats are in a 'chats' folder but contain README & CONTEXT... It also shows 'jaminleod.md'... If we do have a user chat selector, make it so that it doesn't show md. But I think the filters could do the same thing with all chat. Also remove 's1...' it's fake. Then we can commit
 
 ---
+
+## Entry-040 - bob-response
+**Timestamp:** 2026-11-24T19:21:51Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** f7f23ca4e278d3746ce170b98d1796ec
+
+Committed as `e26b95d`. Here's what landed:
+
+**[`bob_log.py`](bob_log.py)**
+- `_check_path` now rejects any path with a `/` unless it's exactly `chat/<filename>` — `notes/anything`, `a/b/c.md`, etc. all error with a clear message
+- New `bob-log delete <path>` command — removes a file via git plumbing, prunes empty parent directories automatically
+
+**[`viewer.html`](viewer.html)**
+- Sidebar shows only `📄 Files` with root-level files — `CONTEXT.md`, `README.md`, etc. Chat authors are no longer listed there; use the "All Chats" tab + Filter → "Open as new tab" for per-author views
+- Chat tab labels: `jaminleod` not `jaminleod.md`
+- Session ID removed from every bubble's meta row
+
+**[`README.md`](README.md)**
+- Full command table including `delete`, `log`, `diff`, `serve`
+- Viewer section updated to reflect current UI
+
+---
