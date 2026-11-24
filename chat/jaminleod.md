@@ -708,3 +708,25 @@ You didn't remove the s1 fake session. Also the chats have anchor tags to files 
 Mention in future things to add that having the ability to see the ai's thought is good
 
 ---
+
+## Entry-042 - bob-response
+**Timestamp:** 2026-11-24T19:27:43Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** f7f23ca4e278d3746ce170b98d1796ec
+
+Done — `9ad7c12`. Here's what landed:
+
+**[`viewer.html`](viewer.html)**
+- **Sessions fully removed** — no session checkboxes in the filter dropdown, no session badges in the toolbar, no dead CSS. Author filter only.
+- **Broken anchor tags gone** — `[viewer.html](viewer.html)` and all other Markdown links in chat bubbles now render as plain text (just the link label). No dead `<a href>` elements.
+
+**[`CONTEXT.md`](CONTEXT.md) — Entry-011 added for alexvu31**
+Covers:
+- Full list of what was completed (Sub-Task 8, viewer polish, shadow branch update)
+- PDF instructions: evidence checklist, 4-page structure, dogfooding suggestion (use Bob to draft the PDF so it appears in `chat/alexvu31.md`)
+- Sub-Task 9 as a stretch goal
+- Current file inventory
+- **Future ideas** — including the thought traces note you mentioned (surfacing AI reasoning as a collapsible "thinking" bubble)
+
+---
