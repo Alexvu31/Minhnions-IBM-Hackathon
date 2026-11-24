@@ -765,3 +765,13 @@ Done — `d9ee85e`. Session filtering is fully restored:
 The only thing that changed from before was deleting the 3 fake `s1` entries from the shadow branch data — the filter itself should have been left alone.
 
 ---
+
+## Entry-044 - user-prompt
+**Timestamp:** 2026-11-24T19:31:12Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** f7f23ca4e278d3746ce170b98d1796ec
+
+Update the chat tab bar text when the filters change, like how all chats shouldn't show (43) if I filter it to 34 message
+
+---
