@@ -485,3 +485,23 @@ Done. Session dividers are gone — the session short ID still shows in the `msg
 Can you please add this into context.md so I can start a new session; and whilst your at it add these things with our own bob-log commands to a context file so my teammate can use it?
 
 ---
+
+## Entry-032 - bob-response
+**Timestamp:** 2026-11-24T18:58:23Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** 8606d5cc441ea48f44da5e843fb64605
+
+Done. Two things written:
+
+**[`CONTEXT.md`](CONTEXT.md) — Entry-010:** Full session handoff note with everything completed, what was fixed, and exactly where to resume next session (Sub-Task 8).
+
+**`notes/status.md` on the shadow branch:** Alex can read this with:
+```sh
+python3 bob_log.py read notes/status.md
+```
+It covers what's done, what's next, how to run the viewer, the key files, and the exact entry format his hooks need to write so the viewer parses them correctly.
+
+The shadow branch now has three items: `README.md`, `chat/jaminleod.md`, and `notes/status.md` — ready for Alex to pull and read.
+
+---
