@@ -115,3 +115,48 @@ The PDF must show how we meaningfully used IBM Bob. Evidence to capture:
 - Sub-Task 1 (repo init) is complete — git is live
 
 ---
+
+## Entry-007 — Revised Scope: Shadow Branch as AI Workspace
+**Date:** 2026-11-24
+**Author:** jaminleod (via Bob planning session)
+**Type:** decision
+**Supersedes:** Entry-002 (partial — core idea unchanged, scope expanded)
+
+The shadow branch is no longer just a chat log. It is a **shared AI workspace** — a git branch where Bob (and developers) can read, write, and commit arbitrary files without touching the working tree. Git itself provides the safety net: nothing is ever lost, no force-pushes, no branch deletion via CLI.
+
+**What changed from Entry-002:**
+- Single `bob-context.md` → arbitrary file structure on the `bob-context` branch
+- Shell script → Python 3 (stdlib only) for robustness and cleaner git plumbing
+- `add` command → separate `write`, `append`, `read`, `ls`, `commit`, `export` commands
+- Auto-hooks now write to `chat/$USER.md` per-author, not a shared flat file
+- Viewer becomes a workspace browser (file tree + content panel), not just a timeline
+- Author detection via `$USER` env var — works for both jaminleod and alexvu31 without config
+
+**Governance model:** CLI path-jails all writes to the shadow branch (no `../` escapes). No destructive commands exposed. Git history is the rollback mechanism.
+
+**Key implementation decision:** Python 3 stdlib only. No pip installs. `jq` no longer needed — `json.load(sys.stdin)` handles hook payloads natively.
+
+---
+
+## Entry-008 — Export Format Agreement (jaminleod ↔ alexvu31 coordination)
+**Date:** 2026-11-24
+**Author:** jaminleod
+**Type:** technical-note
+
+The `bob-log export` command (when called without a specific path) will produce a JSON file for the viewer to consume. Format:
+
+```json
+{
+  "exported_at": "<ISO8601 timestamp>",
+  "branch": "bob-context",
+  "files": {
+    "chat/jaminleod.md": "<full file content>",
+    "chat/alexvu31.md": "<full file content>",
+    "decisions.md": "<full file content>"
+  }
+}
+```
+
+alexvu31: the viewer should accept a file with this exact shape. The keys under `"files"` are the relative paths on the shadow branch. Files under `chat/` get the timeline renderer; all others get the plain Markdown renderer.
+
+---
