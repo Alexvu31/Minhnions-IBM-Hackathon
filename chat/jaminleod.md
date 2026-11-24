@@ -515,3 +515,56 @@ The shadow branch now has three items: `README.md`, `chat/jaminleod.md`, and `no
 give me a commit message for my staged files and read @/home/jaminleod/projects/ibmbob/CONTEXT.md ... Also do we need viewer.html anymore? or do we need to commit test-bob-log.py & sh?
 
 ---
+
+## Entry-034 - bob-response
+**Timestamp:** 2026-11-24T19:02:48Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** f7f23ca4e278d3746ce170b98d1796ec
+
+Both `test_bob_log.py` and `test-bob-log.sh` are **already committed** (they're tracked files). Now I have the full picture.
+
+---
+
+## Answers to your questions
+
+### 1. `viewer.html` — still needed?
+
+**Yes, keep it.** [`viewer.html`](viewer.html) is actively referenced by [`bob_log.py`](bob_log.py) in `cmd_serve()` — the serve command reads it off disk and streams it over HTTP. Deleting it would break `bob-log serve`. It's not dead code.
+
+### 2. `test-bob-log.sh` and `test_bob_log.py` — commit them?
+
+They're **already committed** (both show up in `git ls-files`). Nothing to do.
+
+### 3. Commit message for the staged files
+
+The staged diff covers three distinct deliverables:
+- **Sub-Task 7b** — full IBM Carbon chat bubble UI in `viewer.html`
+- **Sub-Task 7c** — `bob-log serve` (HTTP server + SSE) added to `bob_log.py`
+- **Docs** — `CONTEXT.md` Entry-010 (session handoff) and `.gitignore` cleanup
+
+Suggested commit message:
+
+```
+feat: Sub-Tasks 7b/7c — Carbon chat UI and bob-log serve
+
+viewer.html:
+- Full IBM Carbon Design palette (--ibm-blue-60, --ibm-blue-70, navy header)
+- ChatGPT-style bubbles: user right-aligned IBM Blue, AI left-aligned grey
+- .msg-col wrapper keeps bubble + meta aligned, no crushed-left badges
+- Author name below each bubble; relative timestamps, ISO on hover
+- Tabbed layout: "💬 All Chats" uncloseable + per-author + file tabs
+- Per-tab filter (author/session checkboxes), collapsed 44px icon sidebar
+- HTML escaped before Markdown; _italic_ regex tightened for file paths
+
+bob_log.py:
+- cmd_serve(): ThreadingHTTPServer on localhost:4242
+- GET / → viewer.html, GET /api/export → live JSON, GET /api/stream → SSE
+- SSE pushes new-data within 1 s of any shadow-branch write
+- _export_json_bytes() helper shared between HTTP handler and cmd_export_json
+
+CONTEXT.md: add Entry-010 session handoff (7b/7c complete, next: Sub-Task 8)
+.gitignore: remove stale entry
+```
+
+---
