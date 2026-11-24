@@ -404,3 +404,13 @@ All clean. Here's what was fixed:
 Run `python3 bob_log.py serve` and your real session data will render correctly — author names, correct message types, clean bubble bodies.
 
 ---
+
+## Entry-025 - user-prompt
+**Timestamp:** 2026-11-24T18:54:04Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** 8606d5cc441ea48f44da5e843fb64605
+
+Okay better but the styling is still really bad on the chat bubble. The author badge comes after the message (not contained within it at the top) and everything is wrapped in an <em> for some reason. Also a way to identify which AI message is who's with an indicator saying it's for them or that session would help. Oh, actually I see you tried with that. But the author badge is way off on the left not beside the content and has no margins so the badge, time, and session id for msg-meta are crushed together.
+
+---
