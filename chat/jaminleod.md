@@ -144,3 +144,31 @@ Here's another thing, looking at the README it seems like bob on the other side 
 
 
 I was thinking if the AI made changes and resolved conflicts via the bob shadow branch they could coordinate with each other and work simulatneously... checking for any changes with bob-log plumbing to see diffs since last read or something. Anything relevant to them. Is that possible? Do you see the final version? It's agents coordinating together but also the ability to coordinate asynchronously to a degree via git
+
+---
+**bob-response** | 2026-11-24T18:21:52Z | author: `jaminleod` | session: `8606d5cc441ea48f44da5e843fb64605`
+
+Yes, that makes complete sense. What you're describing is essentially a **shared working memory** that both agents can read from at any point during their session — not just at startup. The shadow branch becomes a live coordination channel.
+
+Here's how I see the full picture now:
+
+**The coordination model:**
+- Both agents write to `bob-context` continuously (already happening via hooks)
+- Both agents can *read* `bob-context` at any point using `bob-log read/ls/log`
+- The `SessionStart` hook injects a compact summary of recent changes as context at the top of each session
+- The Bob skill (stretch goal in the plan) teaches Bob *when to proactively check* the branch during a session — e.g. "before making architectural decisions, check if the other agent left relevant notes"
+
+**The gap today:** Bob has the tools to read the branch (`bob-log read`, `ls`) but doesn't know *what's new* since it last looked. That's what `bob-log diff` and `bob-log log` solve — giving agents a way to ask "what changed, and by whom."
+
+**What I'd add to the plan:**
+
+| Addition | Purpose |
+|---|---|
+| `bob-log log [--since <sha>] [path]` | Shows commit history on `bob-context` — the "what changed" primitive |
+| `bob-log diff <path>` | Shows content diff between last two commits of a file |
+| `SessionStart` hook | Runs `bob-log log --since <last-seen-sha>` and injects compact summary as `additionalContext` |
+| Bob skill SKILL.md | Teaches Bob to proactively call `bob-log` commands during sessions |
+
+The skill is what turns this from "tooling that could coordinate" into "agents that actually coordinate." It tells Bob: *during a session, periodically check if any new commits appeared on `bob-context` since session start, and surface them.* That's the synchronous feel you're describing — both agents working and each one's Bob is aware of what the other is doing.
+
+Shall I write all of this into an updated plan file — the viewer fixes as one set of sub-tasks, and the coordination layer (log/diff/SessionStart hook/skill) as another?
