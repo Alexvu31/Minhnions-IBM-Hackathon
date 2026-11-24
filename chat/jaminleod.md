@@ -573,3 +573,13 @@ Done. Here's the full summary of what was built:
 **Commit + tag when ready, then Sub-Task 8 (coordination CLI)?**
 
 ---
+
+## Entry-019 - user-prompt
+**Timestamp:** 2026-11-24T18:45:16Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** 8606d5cc441ea48f44da5e843fb64605
+
+Okay we don't need an avatar, and the author badge says it's unknown. And the 'Timestamp: 2026-11-24T18:43:37Z Author: jaminleod Type: bob-response Session: 8606d5cc441ea48f44da5e843fb64605' text is still there at the top of the message. That should be taken out of the message and shown as bob's response (in blue maybe). The session id can persist at the bottom in a small text just to say which session it's on. And there are no filters.
+
+---
