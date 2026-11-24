@@ -443,3 +443,15 @@ Run `python3 bob_log.py serve` to see it live.
 Whilst your at it with the underscores you can also make sure we break any html dom elements within the actual chat messages so it doesn't break styling
 
 ---
+
+## Entry-028 - bob-response
+**Timestamp:** 2026-11-24T18:55:21Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** 8606d5cc441ea48f44da5e843fb64605
+
+Every path escapes correctly. Code blocks use `esc()` directly on raw lines, table cells and blockquotes go through `inline()` which calls `esc()` first. Nothing can break the DOM.
+
+No code changes needed — it was already safe. The `esc()` call at the top of `inline()` is the single defensive perimeter and it covers all code paths.
+
+---
