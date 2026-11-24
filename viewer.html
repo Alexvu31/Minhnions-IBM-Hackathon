@@ -65,7 +65,7 @@ body {
 /* ── Upload screen ── */
 #upload-screen {
   flex: 1;
-  display: flex;
+  display: none;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -108,7 +108,7 @@ body {
 /* ── Workspace ── */
 #workspace {
   flex: 1;
-  display: none;
+  display: flex;
   overflow: hidden;
 }
 .workspace-inner {
@@ -676,13 +676,13 @@ function loadExport(json, label) {
 // Screen transitions
 // ─────────────────────────────────────────────────────────────────────────────
 function showUpload() {
-  document.getElementById('upload-screen').style.display = '';
+  document.getElementById('upload-screen').style.display = 'flex';
   document.getElementById('workspace').style.display     = 'none';
   document.getElementById('btn-reload').style.display    = 'none';
 }
 function showWorkspace() {
   document.getElementById('upload-screen').style.display = 'none';
-  document.getElementById('workspace').style.display     = '';
+  document.getElementById('workspace').style.display     = 'flex';
   document.getElementById('btn-reload').style.display    = '';
 }
 
