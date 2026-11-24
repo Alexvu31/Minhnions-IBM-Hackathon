@@ -614,3 +614,13 @@ All done. Here's a summary of everything that landed:
 | **Header meta** | Now shows `N files · M with history · bob-context · exported Xm ago` |
 
 ---
+
+## Entry-037 - user-prompt
+**Timestamp:** 2026-11-24T19:15:38Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** f7f23ca4e278d3746ce170b98d1796ec
+
+Do you think the header is needed? Could be removed. Also we have nothing in README.md... is that a real file in the bob branch? It has nothing in it. We should add some more context and copy our current CONTEXT.md inside of our main branch into bob-log
+
+---
