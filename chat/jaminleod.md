@@ -816,3 +816,13 @@ Here's a quick summary of the last 4 commits alexvu31 will pick up:
 The `CONTEXT.md` Entry-011 has everything alexvu31 needs — PDF instructions, evidence checklist, dogfooding suggestion, and the future ideas note about surfacing AI thought traces.
 
 ---
+
+## Entry-048 - user-prompt
+**Timestamp:** 2026-11-24T19:34:38Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** f7f23ca4e278d3746ce170b98d1796ec
+
+Fix the README; I want to highlight it's
+
+---
