@@ -877,3 +877,13 @@ Done — `4812101`. The new section sits right before "Why it exists" and leads 
 That's also a ready-made pull quote for the PDF.
 
 ---
+
+## Entry-053 - user-prompt
+**Timestamp:** 2026-11-24T19:36:39Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** f7f23ca4e278d3746ce170b98d1796ec
+
+Can you make the instructions and how to dog-food import for github?
+
+---
