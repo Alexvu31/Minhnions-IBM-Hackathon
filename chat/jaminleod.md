@@ -720,3 +720,21 @@ Can you show me the write command?
 These messages are fake, from a 'session' called 's1...' that is not in the repo. Please remove it. From the chat data, it seems like it was added as a test
 
 ---
+
+## Entry-041 - bob-response
+**Timestamp:** 2026-11-24T19:29:32Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** f7f23ca4e278d3746ce170b98d1796ec
+
+The shadow branch already has the clean commit. Nothing to commit on `main` — the only change was to the shadow branch data. Done.
+
+---
+
+To clarify what actually happened across those two requests:
+
+**Previous request ("remove `s1...`")** — I misread it as "remove session display from the UI". That's already done and in `9ad7c12` (session badges, session filter checkboxes all removed from the viewer).
+
+**This request** — the actual ask: delete the 3 fake test entries (`Entry-001`/`002`/`003` with `Session: s1`) from `chat/jaminleod.md` on the shadow branch. Done — those 3 entries are gone, the remaining 40 real entries are renumbered starting at `Entry-001`, and the shadow branch has the clean commit `ceb29f8`.
+
+---
