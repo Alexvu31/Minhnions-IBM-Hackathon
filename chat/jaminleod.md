@@ -505,3 +505,13 @@ It covers what's done, what's next, how to run the viewer, the key files, and th
 The shadow branch now has three items: `README.md`, `chat/jaminleod.md`, and `notes/status.md` — ready for Alex to pull and read.
 
 ---
+
+## Entry-033 - user-prompt
+**Timestamp:** 2026-11-24T19:01:33Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** f7f23ca4e278d3746ce170b98d1796ec
+
+give me a commit message for my staged files and read @/home/jaminleod/projects/ibmbob/CONTEXT.md ... Also do we need viewer.html anymore? or do we need to commit test-bob-log.py & sh?
+
+---
