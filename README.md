@@ -1,47 +1,81 @@
 # Bob Logbook
 
-> Automatically capture IBM Bob session context into a git shadow branch — and browse it as a clean timeline in your browser.
+> Shared AI working memory for teams — automatically capture every IBM Bob session into a git shadow branch that any teammate can read, browse, and build on, in real time or asynchronously.
 
 ---
 
 ## What it does
 
-Every time you work with IBM Bob, valuable context accumulates: decisions made, prompts that worked, constraints discovered. That context normally lives only in the chat window and disappears when the session ends.
+When a team uses IBM Bob, context fractures: each developer has their own chat history, decisions get made in one session and forgotten in the next, and teammates have no way to see what Bob helped someone else figure out an hour ago.
 
-**Bob Logbook** solves this with two Bob lifecycle hooks that fire on every turn:
+**Bob Logbook** fixes this. Two Bob lifecycle hooks fire silently on every turn — no developer action required:
 
 | Hook | What it captures |
 |---|---|
-| `UserPromptSubmit` | Your prompt, before it is sent to Bob |
+| `UserPromptSubmit` | The developer's prompt, before it is sent to Bob |
 | `Stop` | Bob's final response, after each turn |
 
-Each captured event is appended as a timestamped Markdown entry to `chat/$USER.md` on a dedicated **shadow branch** (`bob-context`). The shadow branch shares no history with `main`, so there are never merge conflicts. Run `bob-log export-json` any time to produce a JSON snapshot, then open `viewer.html` in a browser to browse the full workspace as a colour-coded timeline.
+Each event is appended as a timestamped Markdown entry to `chat/$USER.md` on a dedicated **shadow branch** (`bob-context`). Every developer on the team writes to their own file; the shadow branch accumulates a shared, append-only record of every AI-assisted decision the team has made.
+
+The shadow branch is an **orphan branch** — it shares no history with `main` and can never cause a merge conflict. It is a git branch, so the full history is preserved, diffs are always available, and rollback is a single `git update-ref`.
+
+Run `bob-log serve` to get a live browser dashboard. Any teammate — on any machine that has cloned the repo — can open it and see the entire team's session history, filtered by author, session, or time.
+
+---
+
+## Built for team collaboration
+
+Bob Logbook is designed from the ground up for teams working together with AI, both in real time and across sessions:
+
+**Asynchronous handoff**
+- Developer A works with Bob at 9 AM and closes the session. Everything Bob said — decisions, code, rationale — is on the shadow branch.
+- Developer B opens `bob-log serve` at 2 PM. They see Developer A's full session, can read the decisions file, and can pick up exactly where Developer A left off — without reading a chat transcript.
+
+**Synchronous collaboration**
+- Both developers run `bob-log serve` at the same time.
+- As either developer works with Bob, new entries appear in the other's browser within one second via Server-Sent Events (SSE).
+- The viewer's **All Chats** tab merges all authors' sessions into a single chronological timeline.
+
+**Per-author attribution**
+- Each developer writes to their own `chat/<username>.md` file, derived from `$USER` automatically.
+- The viewer colour-codes authors and lets you filter to any author or session.
+
+---
+
+## This is not a chat UI
+
+Bob Logbook looks like a chat interface but is architecturally different from any chat product:
+
+| | Chat UI (ChatGPT, Claude, etc.) | Bob Logbook |
+|---|---|---|
+| **Where data lives** | Vendor's servers, per-account | Your git repo — owned by your team |
+| **Who can read it** | Only the person who had the conversation | Anyone with repo access |
+| **Multiple authors** | Separate accounts, no shared view | One shadow branch, all authors interleaved |
+| **Writable by tools** | No | Yes — Bob, scripts, or CI can `bob-log write` |
+| **History / diffs** | Not available | Every file has a full commit history with line-level diffs |
+| **Survives session end** | Only if manually exported | Automatically, on every turn |
+| **Works offline** | No | Yes — git is local |
+
+The viewer is the read surface. The real product is the **shadow branch**: a git-native shared workspace where every AI-assisted decision is a commit, every file is diffable, and no context is ever lost.
 
 ---
 
 ## Why it exists
 
-- **Zero manual effort** — install once, capture forever.
-- **Dogfoods Bob** — the tool was built entirely using Bob; this README was written by Bob.
-- **Team-friendly** — teammates can open the viewer and pick up exactly where someone left off, without reading the full chat history.
-- **No external dependencies** — Python 3 stdlib only (`subprocess`, `pathlib`, `json`, `os`, `sys`). No pip installs, no accounts, no APIs.
+- **Zero manual effort** — install once, capture forever. Developers don't change how they work.
+- **Dogfoods Bob** — the tool was built entirely using Bob. The shadow branch captured its own construction in real time.
+- **No external dependencies** — Python 3 stdlib only. No pip installs, no accounts, no external APIs. Works anywhere Python 3 and git exist.
+- **Git as the safety net** — no force-pushes, no branch deletion. Every write is a commit. The full history is always there.
 
 ---
 
-## Install
+## Install & team setup
 
-### 1. Clone or copy the files
+### 1. Clone the repo
 
 ```sh
-git clone <repo> ~/projects/ibmbob
-cd ~/projects/ibmbob
-```
-
-The only files you need are:
-```
-bob_log.py          # Core CLI
-bob-log-hook.py     # Bob hook wrapper
-viewer.html         # Browser viewer
+git clone https://github.com/alexvu31/minhnions-ibm-hackathon
+cd minhnions-ibm-hackathon
 ```
 
 ### 2. Initialise the shadow branch
@@ -50,10 +84,20 @@ viewer.html         # Browser viewer
 python3 bob_log.py init
 ```
 
-This creates the `bob-context` orphan branch with an initial `README.md` placeholder.
+This creates the `bob-context` orphan branch locally.
 Running `init` again is safe — it is idempotent.
 
-### 3. Configure the Bob hooks
+### 3. Push the shadow branch to GitHub
+
+The shadow branch needs to be on GitHub so teammates can fetch it:
+
+```sh
+git push origin bob-context
+```
+
+> **First person to set up** does steps 1–3. Everyone else just clones and skips to step 4 — the shadow branch is already on GitHub.
+
+### 4. Configure the Bob hooks
 
 Create (or extend) `.bob/settings.json` in your project root:
 
@@ -63,19 +107,39 @@ Create (or extend) `.bob/settings.json` in your project root:
     {
       "event": "Stop",
       "type": "command",
-      "command": "python3 /path/to/ibmbob/bob-log-hook.py"
+      "command": "python3 /absolute/path/to/bob-log-hook.py"
     },
     {
       "event": "UserPromptSubmit",
       "type": "command",
-      "command": "python3 /path/to/ibmbob/bob-log-hook.py"
+      "command": "python3 /absolute/path/to/bob-log-hook.py"
     }
   ]
 }
 ```
 
-Replace `/path/to/ibmbob/` with the absolute path to this repo.
-Bob will now automatically call `bob-log-hook.py` on every turn.
+Replace `/absolute/path/to/` with the path to your clone. On the hackathon environment this is `/home/$USER/projects/ibmbob/`.
+
+Bob will now capture every turn automatically.
+
+### 5. That's it — the hook handles everything else
+
+Once the hooks are configured, Bob Logbook runs itself:
+
+- **Every prompt and response** is captured to `chat/$USER.md` on `bob-context`
+- **After each turn**, the shadow branch is pushed to GitHub automatically — no manual `git push`
+- **Your teammate** can run `bob-log serve` at any time to see your sessions, live or async
+
+```sh
+# See your own session live
+python3 bob_log.py serve
+# Open http://localhost:4242
+
+# Your teammate (on their machine, after cloning)
+git fetch origin bob-context:bob-context
+python3 bob_log.py serve
+# Their All Chats tab now includes your session, updated after every Bob turn
+```
 
 ---
 

@@ -35,6 +35,28 @@ def bob_log(*args: str) -> int:
     return result.returncode
 
 
+def _push_shadow_branch() -> None:
+    """Push bob-context to origin in the background — fire and forget.
+
+    Runs detached so it never blocks Bob. Silently skipped if there is no
+    remote or no network — the local branch is always the source of truth.
+    """
+    # Check a remote named 'origin' exists before attempting push
+    has_remote = subprocess.run(
+        ["git", "remote", "get-url", "origin"],
+        capture_output=True,
+    ).returncode == 0
+    if not has_remote:
+        return
+    # Detach the push completely — stdout/stderr discarded, no wait
+    subprocess.Popen(
+        ["git", "push", "origin", "bob-context"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        close_fds=True,
+    )
+
+
 def _bob_log_read(path: str) -> str:
     """Read a file from the shadow branch and return its content, or '' if absent."""
     result = subprocess.run(
@@ -85,6 +107,7 @@ def main() -> None:
         entry_num = _count_entries(existing) + 1
         entry = format_entry("bob-response", author, session_id, message, entry_num)
         bob_log("append", chat_path, entry)
+        _push_shadow_branch()
 
     elif event == "UserPromptSubmit":
         message = payload.get("prompt") or ""
@@ -95,6 +118,7 @@ def main() -> None:
         entry = format_entry("user-prompt", author, session_id, message, entry_num)
         # NOTE: stdout must stay empty — it would be injected into the model.
         bob_log("append", chat_path, entry)
+        _push_shadow_branch()
 
     # Any other event: silently ignore.
     sys.exit(0)
