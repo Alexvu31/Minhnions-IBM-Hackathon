@@ -836,3 +836,20 @@ Fix the README; I want to highlight it's
 Fix the README; I want to highlight that it's for collaboration with a team, asynchornous & synchronously. Please.
 
 ---
+
+## Entry-050 - bob-response
+**Timestamp:** 2026-11-24T19:35:44Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** f7f23ca4e278d3746ce170b98d1796ec
+
+Done — `a00969a`. What changed:
+
+- **Tagline** rewritten: *"Shared AI working memory for teams"* instead of single-developer framing
+- **New "Built for team collaboration" section** right after the intro — covers the two explicit scenarios:
+  - *Async handoff*: Developer A works at 9 AM, Developer B picks up at 2 PM with full context
+  - *Sync collaboration*: Both devs running `bob-log serve` simultaneously, entries appear in each other's browser within a second
+  - *Per-author attribution*: each dev gets their own `chat/<username>.md`, colour-coded in the viewer
+- **"Why it exists"** bullets tightened — removed the single-dev "Team-friendly" bullet and replaced with "Git as the safety net" to emphasise the durability angle
+
+---
