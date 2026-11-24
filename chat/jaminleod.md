@@ -475,3 +475,13 @@ The session dividers are cool but might get annoying since different users in th
 Done. Session dividers are gone — the session short ID still shows in the `msg-meta` line below each bubble (8 chars, monospace) so context is still there without the visual noise.
 
 ---
+
+## Entry-031 - user-prompt
+**Timestamp:** 2026-11-24T18:57:37Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** 8606d5cc441ea48f44da5e843fb64605
+
+Can you please add this into context.md so I can start a new session; and whilst your at it add these things with our own bob-log commands to a context file so my teammate can use it?
+
+---
