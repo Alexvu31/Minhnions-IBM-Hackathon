@@ -274,3 +274,31 @@ Shadow branch + git plumbing + hooks + viewer.
 Can you show me the write command?
 
 ---
+
+## Entry-004 - bob-response
+**Timestamp:** 2026-11-24T18:26:13Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** 8606d5cc441ea48f44da5e843fb64605
+
+Sub-Task 7 is done. Here's what changed:
+
+---
+
+**Sub-Task 7 — Viewer Fixes ✅**
+
+**[`bob-log-hook.py`](bob-log-hook.py):**
+- `format_entry()` now writes the `## Entry-NNN` format the viewer parser expects: timestamp, author, type, and session each on their own `**Key:** value` line
+- Entry counter is derived by reading the existing file and counting `## Entry-` headings — per-file, auto-incrementing
+- Added `_bob_log_read()` helper to read a file from the shadow branch before appending
+
+**[`viewer.html`](viewer.html):**
+- Card bodies now render as full Markdown via `renderMarkdown()` — bullets, code, bold, tables all display properly
+- New `renderAllContributors()` function merges entries from every `chat/` file, sorts by ISO timestamp, and renders a unified timeline
+- Sidebar shows `💬 All Contributors` at the top of the chat group; per-author files are indented below it
+- All Contributors view is the default selection when a JSON export is loaded
+- Demo data updated to use correct `user-prompt` / `bob-response` type strings and rich Markdown bodies (bullets, tables, inline code) so the demo actually demonstrates the rendering
+
+Ready for the commit message, then Sub-Task 8?
+
+---
