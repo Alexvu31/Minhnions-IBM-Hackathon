@@ -208,3 +208,34 @@ Ready to switch to agent mode and start with Sub-Task 7?
 **user-prompt** | 2026-11-24T18:23:11Z | author: `jaminleod` | session: `8606d5cc441ea48f44da5e843fb64605`
 
 Is bob log pulling before checking? It should
+
+---
+**bob-response** | 2026-11-24T18:23:36Z | author: `jaminleod` | session: `8606d5cc441ea48f44da5e843fb64605`
+
+Plan updated. Here's what changed in Sub-Task 9:
+
+**What was added:**
+
+- `bob-log pull` and `bob-log push` are now **core CLI commands** (not stretch goals) — `pull` does `git fetch origin bob-context:bob-context`, `push` does `git push origin bob-context`
+- Both detect "no remote configured" and skip silently — the whole thing still works offline or in a local-only repo
+- `bob-log log` gets a `--fetch` flag for on-demand fresh reads during a session
+- The `SessionStart` hook flow is now: **pull → read cursor → log since cursor → summarise → update cursor → push → emit context**
+- State cursor is pushed back after every session start, so other agents can see the timestamp of your last session in `state/$USER.json`
+
+**The full coordination loop for two simultaneous agents now looks like:**
+
+```mermaid
+sequenceDiagram
+    participant JL as jaminleod + Bob
+    participant GH as Remote origin/bob-context
+    participant AV as alexvu31 + Bob
+
+    JL->>GH: SessionStart: pull → read log → push cursor
+    AV->>GH: SessionStart: pull → sees JL's commits → push cursor
+    JL->>GH: Stop hook: append chat entry → push
+    AV->>GH: bob-log log --fetch → sees JL's new chat entry
+    AV->>GH: Stop hook: append chat entry → push
+    JL->>GH: SessionStart (next session): pull → sees AV's work
+```
+
+Ready to implement when you are — switch to agent mode and start with Sub-Task 7?
