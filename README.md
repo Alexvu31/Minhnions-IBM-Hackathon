@@ -42,6 +42,24 @@ Bob Logbook is designed from the ground up for teams working together with AI, b
 
 ---
 
+## This is not a chat UI
+
+Bob Logbook looks like a chat interface but is architecturally different from any chat product:
+
+| | Chat UI (ChatGPT, Claude, etc.) | Bob Logbook |
+|---|---|---|
+| **Where data lives** | Vendor's servers, per-account | Your git repo — owned by your team |
+| **Who can read it** | Only the person who had the conversation | Anyone with repo access |
+| **Multiple authors** | Separate accounts, no shared view | One shadow branch, all authors interleaved |
+| **Writable by tools** | No | Yes — Bob, scripts, or CI can `bob-log write` |
+| **History / diffs** | Not available | Every file has a full commit history with line-level diffs |
+| **Survives session end** | Only if manually exported | Automatically, on every turn |
+| **Works offline** | No | Yes — git is local |
+
+The viewer is the read surface. The real product is the **shadow branch**: a git-native shared workspace where every AI-assisted decision is a commit, every file is diffable, and no context is ever lost.
+
+---
+
 ## Why it exists
 
 - **Zero manual effort** — install once, capture forever. Developers don't change how they work.
