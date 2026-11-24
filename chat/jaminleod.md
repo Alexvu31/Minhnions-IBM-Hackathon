@@ -312,3 +312,38 @@ Ready for the commit message, then Sub-Task 8?
 Okay, make a commit message & tag message. Then I want to change more styling, because the styling is not what I envisioned
 
 ---
+
+## Entry-006 - bob-response
+**Timestamp:** 2026-11-24T18:26:57Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** 8606d5cc441ea48f44da5e843fb64605
+
+**Commit message:**
+```
+feat: fix viewer rendering and align hook entry format (Sub-Task 7)
+
+- bob-log-hook.py: rewrite format_entry() to ## Entry-NNN format with
+  **Timestamp/Author/Type/Session** metadata keys; add _bob_log_read()
+  helper and _count_entries() for auto-incrementing entry numbers
+- viewer.html: render card bodies as full Markdown via renderMarkdown()
+  instead of escaped plaintext
+- viewer.html: add All Contributors virtual view — merges all chat/
+  entries sorted by ISO timestamp, shown as default on load
+- viewer.html: chat/ files indented in sidebar under All Contributors
+- viewer.html: update demo data to correct type strings and rich
+  Markdown bodies demonstrating bullets, tables, inline code
+
+Closes Sub-Task 7.
+```
+
+**Tag:**
+```
+git tag -a v0.4-sub-task-7 -m "Sub-Task 7 complete: viewer rendering fixes + All Contributors view"
+```
+
+---
+
+Now — what's your vision for the styling? Walk me through it and I'll implement exactly what you want.
+
+---
