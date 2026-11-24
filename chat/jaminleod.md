@@ -943,3 +943,18 @@ That URL shows `chat/jaminleod.md`, `CONTEXT.md`, `README.md` — the entire AI 
 Why do we make the developers push the shadow branch? Make bob-log do it.
 
 ---
+
+## Entry-058 - bob-response
+**Timestamp:** 2026-11-24T19:41:26Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** f7f23ca4e278d3746ce170b98d1796ec
+
+Done — `75ca72e`, both branches pushed. The flow is now:
+
+1. Developer clones, runs `init`, configures the hook — **once**
+2. Every Bob turn → hook appends to `chat/$USER.md` → `Popen` fires `git push origin bob-context` in the background → **done, no developer action ever needed again**
+
+The teammate just needs to `git fetch origin bob-context:bob-context` to get the latest, or run `bob-log serve` which pulls the existing local state. The push is non-blocking — if there's no network or no remote, `Popen` discards the error silently and Bob continues normally.
+
+---
