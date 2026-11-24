@@ -17,10 +17,11 @@
   --ibm-gray-70:   #525252;
   --ibm-gray-100:  #161616;
   --white:         #FFFFFF;
+  --add-bg:        #defade;
+  --del-bg:        #fde8e8;
   --tab-h:         40px;
   --sidebar-w:     44px;
   --sidebar-open:  220px;
-  --header-h:      48px;
 }
 
 /* ── Reset ─────────────────────────────────────────────────────────────── */
@@ -31,25 +32,15 @@ html, body { height: 100%; font-family: "IBM Plex Sans", -apple-system, "Segoe U
 /* ── App shell ──────────────────────────────────────────────────────────── */
 #app { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-/* ── Header ─────────────────────────────────────────────────────────────── */
-header {
-  height: var(--header-h); flex-shrink: 0;
-  display: flex; align-items: center; gap: 10px;
-  padding: 0 16px;
-  background: var(--ibm-navy); color: var(--white);
-  border-bottom: 1px solid rgba(255,255,255,.08);
-  z-index: 10;
+/* ── Floating load button (file: protocol only) ──────────────────────────── */
+#load-fab {
+  position: fixed; bottom: 20px; right: 20px; z-index: 90;
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 16px; background: var(--ibm-navy); color: var(--white);
+  border: none; border-radius: 24px; cursor: pointer; font-size: 13px; font-weight: 500;
+  box-shadow: 0 4px 16px rgba(0,0,0,.25); transition: background .15s, transform .1s;
 }
-header .logo { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; letter-spacing: .2px; }
-header .logo svg { flex-shrink: 0; }
-header .meta { margin-left: auto; font-size: 12px; color: rgba(255,255,255,.55); }
-#load-btn {
-  display: flex; align-items: center; gap: 5px;
-  padding: 5px 12px; background: var(--ibm-blue-60); color: var(--white);
-  border: none; border-radius: 2px; cursor: pointer; font-size: 13px; font-weight: 500;
-  transition: background .15s;
-}
-#load-btn:hover { background: var(--ibm-blue-70); }
+#load-fab:hover { background: var(--ibm-blue-70); transform: translateY(-1px); }
 #file-input { display: none; }
 #drop-overlay {
   display: none; position: fixed; inset: 0; z-index: 100;
@@ -59,15 +50,30 @@ header .meta { margin-left: auto; font-size: 12px; color: rgba(255,255,255,.55);
 }
 #drop-overlay.active { display: flex; }
 
-/* ── Tab bar ─────────────────────────────────────────────────────────────── */
+/* ── Tab bar title ───────────────────────────────────────────────────────── */
+#tab-bar-wrap {
+  flex-shrink: 0; display: flex; align-items: stretch;
+  border-bottom: 1px solid var(--ibm-gray-20); background: var(--ibm-gray-10);
+}
+#tab-bar-title {
+  display: flex; align-items: center; gap: 7px;
+  padding: 0 14px; border-right: 1px solid var(--ibm-gray-20);
+  font-size: 13px; font-weight: 600; color: var(--ibm-navy);
+  flex-shrink: 0; white-space: nowrap;
+}
+#tab-bar-title svg { flex-shrink: 0; }
 #tab-bar {
-  height: var(--tab-h); flex-shrink: 0;
+  flex: 1; overflow-x: auto; overflow-y: hidden;
   display: flex; align-items: stretch;
-  background: var(--ibm-gray-10); border-bottom: 1px solid var(--ibm-gray-20);
-  overflow-x: auto; overflow-y: hidden;
 }
 #tab-bar::-webkit-scrollbar { height: 3px; }
 #tab-bar::-webkit-scrollbar-thumb { background: var(--ibm-gray-20); }
+#header-meta {
+  display: flex; align-items: center;
+  padding: 0 12px; font-size: 11px; color: var(--ibm-gray-40);
+  border-left: 1px solid var(--ibm-gray-20); flex-shrink: 0; white-space: nowrap;
+}
+
 
 .tab {
   display: inline-flex; align-items: center; gap: 6px;
@@ -91,6 +97,11 @@ header .meta { margin-left: auto; font-size: 12px; color: rgba(255,255,255,.55);
 }
 .tab .tab-close:hover { background: var(--ibm-gray-20); color: var(--ibm-gray-100); }
 .tab.active .tab-close:hover { background: #dbeafe; }
+.tab-count {
+  font-size: 11px; font-weight: 400;
+  color: var(--ibm-gray-40); margin-left: 1px;
+}
+.tab.active .tab-count { color: var(--ibm-blue-60); opacity: .7; }
 
 /* ── Workspace ───────────────────────────────────────────────────────────── */
 #workspace { display: flex; flex: 1; overflow: hidden; }
@@ -131,9 +142,10 @@ header .meta { margin-left: auto; font-size: 12px; color: rgba(255,255,255,.55);
 #chat-toolbar {
   display: flex; align-items: center; gap: 8px;
   padding: 6px 16px; border-bottom: 1px solid var(--ibm-gray-20);
-  background: var(--white); flex-shrink: 0;
+  background: var(--white); flex-shrink: 0; flex-wrap: wrap;
 }
 #chat-toolbar .filter-label { font-size: 12px; color: var(--ibm-gray-70); }
+#chat-toolbar .msg-count { font-size: 12px; color: var(--ibm-gray-40); margin-left: auto; }
 .filter-pill {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 3px 10px; border: 1px solid var(--ibm-gray-20); border-radius: 12px;
@@ -146,7 +158,7 @@ header .meta { margin-left: auto; font-size: 12px; color: rgba(255,255,255,.55);
   display: none; position: absolute; z-index: 50;
   top: calc(var(--header-h) + var(--tab-h) + 38px); left: 60px;
   background: var(--white); border: 1px solid var(--ibm-gray-20); border-radius: 4px;
-  box-shadow: 0 4px 16px rgba(0,0,0,.12); min-width: 220px; padding: 8px 0;
+  box-shadow: 0 4px 16px rgba(0,0,0,.12); min-width: 240px; padding: 8px 0;
 }
 #filter-dropdown.open { display: block; }
 .filter-group { padding: 4px 0; }
@@ -158,6 +170,18 @@ header .meta { margin-left: auto; font-size: 12px; color: rgba(255,255,255,.55);
 .filter-option:hover { background: var(--ibm-gray-10); }
 .filter-option input[type=checkbox] { accent-color: var(--ibm-blue-60); cursor: pointer; }
 .filter-divider { border: none; border-top: 1px solid var(--ibm-gray-20); margin: 4px 0; }
+.filter-actions {
+  padding: 8px 14px 4px; display: flex; gap: 8px; border-top: 1px solid var(--ibm-gray-20); margin-top: 4px;
+}
+.filter-actions button {
+  flex: 1; padding: 5px 8px; font-size: 12px; border-radius: 2px; border: 1px solid var(--ibm-gray-20);
+  cursor: pointer; background: var(--white); color: var(--ibm-gray-70); transition: background .1s;
+}
+.filter-actions button.primary {
+  background: var(--ibm-blue-60); color: var(--white); border-color: var(--ibm-blue-60);
+}
+.filter-actions button:hover { background: var(--ibm-gray-10); }
+.filter-actions button.primary:hover { background: var(--ibm-blue-70); }
 
 /* ── Chat scroll area ────────────────────────────────────────────────────── */
 #chat-scroll { flex: 1; overflow-y: auto; padding: 24px 0 40px; }
@@ -215,10 +239,6 @@ header .meta { margin-left: auto; font-size: 12px; color: rgba(255,255,255,.55);
 .msg-meta .author-name.ai-name { color: var(--ibm-blue-60); }
 .msg-meta .author-name.user-name { color: var(--ibm-gray-70); }
 .msg-meta .meta-time { color: var(--ibm-gray-40); }
-.msg-meta .meta-session {
-  font-size: 10px; color: var(--ibm-gray-40);
-  font-family: "IBM Plex Mono", Consolas, monospace;
-}
 
 /* ── Markdown inside bubbles ──────────────────────────────────────────────── */
 .md-view h1 { font-size: 17px; margin: 14px 0 6px; border-bottom: 1px solid rgba(0,0,0,.08); padding-bottom: 4px; }
@@ -228,7 +248,7 @@ header .meta { margin-left: auto; font-size: 12px; color: rgba(255,255,255,.55);
 .md-view ul, .md-view ol { margin: 6px 0 6px 20px; }
 .md-view li { margin: 2px 0; }
 .md-view code { background: rgba(0,0,0,.07); padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: "IBM Plex Mono", "SF Mono", Consolas, monospace; }
-.md-view pre  { background: #f7f8fa; border: 1px solid var(--ibm-gray-20); border-radius: 6px; padding: 10px 12px; overflow-x: auto; margin: 8px 0; }
+.md-view pre  { background: #f7f8fa; border: 1px solid var(--ibm-gray-20); border-radius: 6px; padding: 10px 12px; overflow-x: auto; margin: 8px 0; position: relative; }
 .md-view pre code { background: none; padding: 0; }
 .md-view blockquote { border-left: 3px solid var(--ibm-gray-20); margin: 8px 0; padding: 4px 12px; color: var(--ibm-gray-70); background: rgba(0,0,0,.03); border-radius: 0 4px 4px 0; }
 .md-view strong { font-weight: 600; }
@@ -239,10 +259,63 @@ header .meta { margin-left: auto; font-size: 12px; color: rgba(255,255,255,.55);
 .md-view th, .md-view td { border: 1px solid var(--ibm-gray-20); padding: 4px 10px; }
 .md-view th { background: var(--ibm-gray-10); font-weight: 600; }
 
+/* Copy button on code blocks */
+.copy-btn {
+  position: absolute; top: 6px; right: 8px;
+  padding: 2px 8px; font-size: 11px; border: 1px solid var(--ibm-gray-20);
+  border-radius: 3px; cursor: pointer; background: var(--white);
+  color: var(--ibm-gray-70); opacity: 0; transition: opacity .15s;
+}
+.md-view pre:hover .copy-btn { opacity: 1; }
+.copy-btn.copied { color: #198038; border-color: #198038; }
+
 /* ── File / Markdown view ────────────────────────────────────────────────── */
 #file-view { flex: 1; overflow-y: auto; padding: 28px 36px; }
 #file-view .md-view h1 { font-size: 22px; }
 #file-view .md-view h2 { font-size: 18px; }
+
+/* ── File history / diff view ────────────────────────────────────────────── */
+#history-scroll { flex: 1; overflow-y: auto; padding: 20px 24px 40px; }
+.history-toolbar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 16px; border-bottom: 1px solid var(--ibm-gray-20);
+  background: var(--white); flex-shrink: 0;
+}
+.history-toolbar .ht-label { font-size: 12px; color: var(--ibm-gray-70); }
+.history-toolbar .ht-path { font-family: "IBM Plex Mono", Consolas, monospace; font-size: 12px; color: var(--ibm-gray-100); }
+.history-btn {
+  padding: 4px 10px; font-size: 12px; border: 1px solid var(--ibm-gray-20);
+  border-radius: 2px; cursor: pointer; background: var(--white); color: var(--ibm-gray-70);
+  transition: background .1s;
+}
+.history-btn:hover { background: var(--ibm-gray-10); }
+.history-btn.active { background: var(--ibm-blue-60); color: var(--white); border-color: var(--ibm-blue-60); }
+
+/* Diff commit card */
+.diff-card {
+  background: var(--white); border: 1px solid var(--ibm-gray-20);
+  border-radius: 6px; margin-bottom: 16px; overflow: hidden;
+}
+.diff-card-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 14px; background: var(--ibm-gray-10);
+  border-bottom: 1px solid var(--ibm-gray-20); flex-wrap: wrap;
+}
+.diff-sha {
+  font-family: "IBM Plex Mono", Consolas, monospace;
+  font-size: 11px; color: var(--ibm-blue-60); font-weight: 600;
+}
+.diff-author { font-size: 12px; color: var(--ibm-gray-70); }
+.diff-date { font-size: 11px; color: var(--ibm-gray-40); margin-left: auto; }
+.diff-msg { font-size: 12px; color: var(--ibm-gray-100); width: 100%; padding-top: 2px; }
+.diff-body { padding: 0; }
+.diff-line {
+  font-family: "IBM Plex Mono", Consolas, monospace;
+  font-size: 12px; line-height: 1.6; padding: 0 14px; white-space: pre-wrap; word-break: break-all;
+}
+.diff-line.add { background: var(--add-bg); }
+.diff-line.del { background: var(--del-bg); }
+.diff-line.meta { background: #e8f0ff; color: var(--ibm-blue-60); }
 
 /* ── Welcome screen ──────────────────────────────────────────────────────── */
 #welcome { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--ibm-gray-70); padding: 40px; }
@@ -252,38 +325,30 @@ header .meta { margin-left: auto; font-size: 12px; color: rgba(255,255,255,.55);
 
 /* ── Print ───────────────────────────────────────────────────────────────── */
 @media print {
-  header, #tab-bar, #sidebar, #chat-toolbar { display: none !important; }
+  #tab-bar-wrap, #sidebar, #chat-toolbar, .history-toolbar, #load-fab { display: none !important; }
   #workspace { display: block; overflow: visible; }
   #content { overflow: visible; }
-  #chat-scroll, #file-view { overflow: visible; }
+  #chat-scroll, #file-view, #history-scroll { overflow: visible; }
   .msg-row { break-inside: avoid; }
+  .diff-card { break-inside: avoid; }
 }
 </style>
 </head>
 <body>
 <div id="app">
 
-  <!-- ── Header ──────────────────────────────────────────────────────────── -->
-  <header>
-    <div class="logo">
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+  <!-- ── Tab bar (with inline brand + meta) ──────────────────────────────── -->
+  <div id="tab-bar-wrap">
+    <div id="tab-bar-title">
+      <svg width="16" height="16" viewBox="0 0 22 22" fill="none" aria-hidden="true">
         <rect x="2" y="3" width="11" height="15" rx="2" fill="#4589ff"/>
         <rect x="9" y="1" width="11" height="15" rx="2" fill="#74b1ff" opacity=".75"/>
-        <rect x="5" y="8"  width="5" height="1.5" rx=".5" fill="#fff"/>
-        <rect x="5" y="11" width="7" height="1.5" rx=".5" fill="#fff"/>
-        <rect x="5" y="14" width="6" height="1.5" rx=".5" fill="#fff"/>
       </svg>
       Bob Logbook
     </div>
-    <label id="load-btn">
-      📂 Load export
-      <input type="file" id="file-input" accept=".json,application/json">
-    </label>
-    <span class="meta" id="header-meta"></span>
-  </header>
-
-  <!-- ── Tab bar ─────────────────────────────────────────────────────────── -->
-  <div id="tab-bar"></div>
+    <div id="tab-bar"></div>
+    <span id="header-meta"></span>
+  </div>
 
   <!-- ── Main workspace ──────────────────────────────────────────────────── -->
   <div id="workspace">
@@ -296,7 +361,7 @@ header .meta { margin-left: auto; font-size: 12px; color: rgba(255,255,255,.55);
       <div id="welcome">
         <h2>Bob Logbook Viewer</h2>
         <p>Load a <code>bob-context-export.json</code> file produced by <code>bob-log export-json</code>, or drop it anywhere on the page.</p>
-        <p style="margin-top:4px; font-size:12px;">Or open <code>viewer.html?demo</code> for sample data.</p>
+        <p style="margin-top:4px; font-size:12px; color:var(--ibm-gray-40)">Running via <code>bob-log serve</code>? Data loads automatically.</p>
       </div>
     </div>
 
@@ -307,6 +372,12 @@ header .meta { margin-left: auto; font-size: 12px; color: rgba(255,255,255,.55);
 
   <!-- Filter dropdown (shared, repositioned by JS) -->
   <div id="filter-dropdown"></div>
+
+  <!-- Floating load button (file: protocol only, hidden in HTTP serve mode) -->
+  <label id="load-fab" title="Load export JSON">
+    📂 Load export
+    <input type="file" id="file-input" accept=".json,application/json">
+  </label>
 
 </div>
 
@@ -331,7 +402,9 @@ function renderMarkdown(text) {
     if (/^```/.test(line)) {
       i++; const cl = [];
       while (i < lines.length && !/^```/.test(lines[i])) { cl.push(esc(lines[i])); i++; }
-      i++; out.push("<pre><code>" + cl.join("\n") + "</code></pre>"); continue;
+      i++;
+      out.push('<pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>' + cl.join("\n") + "</code></pre>");
+      continue;
     }
     if (/^---+$/.test(line.trim())) { out.push("<hr>"); i++; continue; }
     const hm = line.match(/^(#{1,4})\s+(.*)/);
@@ -377,8 +450,17 @@ function renderMarkdown(text) {
       .replace(/__([^_]+)__/g,"<strong>$1</strong>")
       .replace(/\*([^*\s][^*]*[^*\s]|\S)\*/g,"<em>$1</em>")
       .replace(/(^|[\s(>])_([^_\s][^_]*[^_\s]|[^_\s])_([\s,.!?)<]|$)/g,"$1<em>$2</em>$3")
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2">$1</a>');
+      // Render link text only — relative file hrefs don't resolve in the viewer
+      .replace(/\[([^\]]+)\]\([^)]+\)/g,'$1');
   }
+}
+
+function copyCode(btn) {
+  const code = btn.nextElementSibling ? btn.nextElementSibling.textContent : "";
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = "Copied!"; btn.classList.add("copied");
+    setTimeout(() => { btn.textContent = "Copy"; btn.classList.remove("copied"); }, 1500);
+  }).catch(() => {});
 }
 
 // ── Chat timeline parser ───────────────────────────────────────────────────
@@ -436,8 +518,9 @@ function escH(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").r
 
 // ── State ──────────────────────────────────────────────────────────────────
 let _files = null;
+let _history = {};   // { path: [ { sha, author, date, message, content }, ... ] }
 
-// Tab registry: id → { label, type ("chat"|"file"), path?, entries?, filter }
+// Tab registry: id → { label, type ("chat"|"file"|"history"), path?, entries?, filter, count? }
 const _tabs = new Map();
 let _activeTab = null;
 let _tabCounter = 0;
@@ -471,6 +554,23 @@ function selectTab(id) {
   _activeTab = id;
   _renderTabBar();
   _renderContent();
+  _syncSidebarActive();
+}
+
+function _tabCountLabel(tab) {
+  if (tab.type === "chat" && tab.entries) {
+    const n = tab.entries.filter(e => {
+      if (tab.filter && tab.filter.authors  && !tab.filter.authors.has(e.author))   return false;
+      if (tab.filter && tab.filter.sessions && !tab.filter.sessions.has(e.session)) return false;
+      return true;
+    }).length;
+    return n > 0 ? `(${n})` : "";
+  }
+  if (tab.type === "history" && tab.commits) {
+    const n = tab.commits.length;
+    return n > 0 ? `(${n})` : "";
+  }
+  return "";
 }
 
 function _renderTabBar() {
@@ -480,7 +580,8 @@ function _renderTabBar() {
     const el = document.createElement("div");
     el.className = "tab" + (id === _activeTab ? " active" : "");
     el.dataset.tabId = id;
-    el.innerHTML = escH(tab.label);
+    const countStr = _tabCountLabel(tab);
+    el.innerHTML = escH(tab.label) + (countStr ? ` <span class="tab-count">${escH(countStr)}</span>` : "");
     if (tab.closeable !== false) {
       const x = document.createElement("button");
       x.className = "tab-close"; x.textContent = "×"; x.title = "Close";
@@ -500,44 +601,37 @@ function openFilter(tabId, anchorEl) {
   if (!tab || tab.type !== "chat") return;
   const dd = document.getElementById("filter-dropdown");
 
-  // Collect unique authors + sessions from this tab's entries
   const entries = tab.entries || [];
   const authors  = [...new Set(entries.map(e => e.author).filter(Boolean))].sort();
   const sessions = [...new Set(entries.map(e => e.session).filter(Boolean))].sort();
-
   const curAuthors  = tab.filter.authors  || new Set(authors);
   const curSessions = tab.filter.sessions || new Set(sessions);
 
   let html = "";
   if (authors.length) {
     html += '<div class="filter-group"><div class="filter-group-label">Author</div>';
-    for (const a of authors) {
-      const chk = curAuthors.has(a) ? "checked" : "";
-      html += `<label class="filter-option"><input type="checkbox" data-kind="author" data-val="${escH(a)}" ${chk}> ${escH(a)}</label>`;
-    }
+    for (const a of authors)
+      html += `<label class="filter-option"><input type="checkbox" data-kind="author" data-val="${escH(a)}" ${curAuthors.has(a)?"checked":""}> ${escH(a)}</label>`;
     html += "</div>";
   }
   if (sessions.length) {
     if (authors.length) html += '<hr class="filter-divider">';
     html += '<div class="filter-group"><div class="filter-group-label">Session</div>';
-    for (const s of sessions) {
-      const chk = curSessions.has(s) ? "checked" : "";
-      html += `<label class="filter-option"><input type="checkbox" data-kind="session" data-val="${escH(s)}" ${chk}> <code>${escH(s.slice(0,12))}…</code></label>`;
-    }
+    for (const s of sessions)
+      html += `<label class="filter-option"><input type="checkbox" data-kind="session" data-val="${escH(s)}" ${curSessions.has(s)?"checked":""}> <code title="${escH(s)}">${escH(s.slice(0,8))}…</code></label>`;
     html += "</div>";
   }
   if (!html) html = '<div style="padding:10px 14px; font-size:13px; color:var(--ibm-gray-70)">No filters available.</div>';
 
-  dd.innerHTML = html;
+  html += `<div class="filter-actions"><button onclick="_applyFilterAsNewTab('${escH(tabId)}')">Open as new tab</button></div>`;
 
-  // Position below anchor
+  dd.innerHTML = html;
   const rect = anchorEl.getBoundingClientRect();
   dd.style.top  = (rect.bottom + 4) + "px";
   dd.style.left = rect.left + "px";
   dd.classList.add("open");
   _filterOpen = true;
 
-  // Live filter on checkbox change
   dd.querySelectorAll("input[type=checkbox]").forEach(cb => {
     cb.addEventListener("change", () => {
       const authBoxes = [...dd.querySelectorAll('[data-kind=author]')];
@@ -547,6 +641,31 @@ function openFilter(tabId, anchorEl) {
       _renderContent();
     });
   });
+}
+
+function _applyFilterAsNewTab(tabId) {
+  const tab = _tabs.get(tabId);
+  if (!tab || tab.type !== "chat") return;
+
+  const dd = document.getElementById("filter-dropdown");
+  const authBoxes = [...dd.querySelectorAll('[data-kind=author]')];
+  const sesBoxes  = [...dd.querySelectorAll('[data-kind=session]')];
+  const selAuthors  = authBoxes.length ? new Set(authBoxes.filter(c=>c.checked).map(c=>c.dataset.val)) : null;
+  const selSessions = sesBoxes.length  ? new Set(sesBoxes.filter(c=>c.checked).map(c=>c.dataset.val))  : null;
+
+  const filtered = (tab.entries || []).filter(e => {
+    if (selAuthors  && !selAuthors.has(e.author))   return false;
+    if (selSessions && !selSessions.has(e.session)) return false;
+    return true;
+  });
+
+  const authLabel = selAuthors  ? [...selAuthors].join(", ") : "all";
+  const sesLabel  = selSessions ? " · " + [...selSessions].map(s => s.slice(0,8)).join(", ") : "";
+  const label = "💬 " + authLabel + sesLabel;
+
+  document.getElementById("filter-dropdown").classList.remove("open");
+  _filterOpen = false;
+  createTab(label, "chat", { path: "__filtered__", entries: filtered, closeable: true });
 }
 
 // Filter button — event delegation on #content so it survives innerHTML replacement
@@ -569,6 +688,8 @@ function _renderContent() {
   const tab = _tabs.get(_activeTab);
   if (tab.type === "chat") {
     _renderChat(content, tab);
+  } else if (tab.type === "history") {
+    _renderHistory(content, tab);
   } else {
     _renderFile(content, tab);
   }
@@ -579,7 +700,7 @@ function _renderChat(content, tab) {
   let toolbar = `<div id="chat-toolbar"><span class="filter-label">Filter</span>`;
   toolbar += `<button class="filter-pill" id="filter-btn" title="Filter messages">⚙ Filter</button>`;
 
-  // Active filter badges
+  // Active filter badges — authors
   if (tab.filter.authors) {
     const allAuthors = [...new Set((tab.entries||[]).map(e=>e.author).filter(Boolean))];
     if (tab.filter.authors.size < allAuthors.length) {
@@ -587,14 +708,23 @@ function _renderChat(content, tab) {
         toolbar += `<span class="filter-pill active">${escH(a)}</span>`;
     }
   }
-  toolbar += `</div>`;
-
+  // Active session filter pills
+  if (tab.filter.sessions) {
+    const allSessions = [...new Set((tab.entries||[]).map(e=>e.session).filter(Boolean))];
+    if (tab.filter.sessions.size < allSessions.length) {
+      for (const s of tab.filter.sessions)
+        toolbar += `<span class="filter-pill active" title="${escH(s)}">${escH(s.slice(0,8))}…</span>`;
+    }
+  }
   // Chat messages
   const entries = (tab.entries || []).filter(e => {
     if (tab.filter.authors  && !tab.filter.authors.has(e.author))   return false;
     if (tab.filter.sessions && !tab.filter.sessions.has(e.session)) return false;
     return true;
   });
+
+  toolbar += `<span class="msg-count">${entries.length} message${entries.length !== 1 ? "s" : ""}</span>`;
+  toolbar += `</div>`;
 
   let msgs = "";
   for (const e of entries) {
@@ -603,15 +733,12 @@ function _renderChat(content, tab) {
     const relTime = formatRelative(e.timestamp);
     const absTime = e.timestamp;
     const authorCls = isUser ? "user-name" : "ai-name";
-    const sessionSnip = e.session ? e.session.slice(0, 8) : "";
-
     msgs += `<div class="msg-row ${rowCls}">`;
     msgs += `<div class="msg-col">`;
     msgs += `<div class="bubble"><div class="md-view">${renderMarkdown(e.body || "")}</div></div>`;
     msgs += `<div class="msg-meta">`;
     msgs += `<span class="author-name ${authorCls}">${escH(e.author || (isUser ? "user" : "bob"))}</span>`;
     msgs += `<span class="meta-time" title="${escH(absTime)}">${escH(relTime)}</span>`;
-    if (sessionSnip) msgs += `<span class="meta-session">${escH(sessionSnip)}</span>`;
     msgs += `</div>`;
     msgs += `</div>`;
     msgs += `</div>`;
@@ -628,7 +755,120 @@ function _renderChat(content, tab) {
 
 function _renderFile(content, tab) {
   const mdHtml = renderMarkdown(tab.content || "");
-  content.innerHTML = `<div id="file-view"><h2 style="font-size:16px; margin-bottom:16px; border-bottom:1px solid var(--ibm-gray-20); padding-bottom:8px; color:var(--ibm-gray-100)">${escH(tab.path||tab.label)}</h2><div class="md-view">${mdHtml}</div></div>`;
+  const hasHistory = _history[tab.path] && _history[tab.path].length >= 2;
+  const historyBtn = hasHistory
+    ? `<button class="history-btn" onclick="openHistoryTab('${escH(tab.path)}')" title="View file history">🕐 History (${_history[tab.path].length})</button>`
+    : "";
+  content.innerHTML = `
+    <div class="history-toolbar">
+      <span class="ht-label">File</span>
+      <span class="ht-path">${escH(tab.path||tab.label)}</span>
+      ${historyBtn}
+    </div>
+    <div id="file-view"><div class="md-view">${mdHtml}</div></div>`;
+}
+
+// ── History / diff view ────────────────────────────────────────────────────
+function openHistoryTab(path) {
+  // Find an existing history tab for this path or create one
+  for (const [id, tab] of _tabs) {
+    if (tab.type === "history" && tab.path === path) { selectTab(id); return; }
+  }
+  const commits = _history[path] || [];
+  const label = "🕐 " + path.split("/").pop();
+  createTab(label, "history", { path, commits, closeable: true });
+}
+
+function _renderHistory(content, tab) {
+  const commits = tab.commits || [];
+  const label = tab.path || tab.label;
+
+  let toolbar = `<div class="history-toolbar">
+    <span class="ht-label">History</span>
+    <span class="ht-path">${escH(label)}</span>
+    <span style="margin-left:auto; font-size:12px; color:var(--ibm-gray-40)">${commits.length} revision${commits.length !== 1 ? "s" : ""}</span>
+  </div>`;
+
+  if (!commits.length) {
+    content.innerHTML = toolbar + `<div style="text-align:center; padding:40px; color:var(--ibm-gray-40); font-size:13px;">No history available.</div>`;
+    return;
+  }
+
+  let cards = "";
+  for (let i = 0; i < commits.length; i++) {
+    const c = commits[i];
+    const prev = commits[i + 1];  // older commit
+    const diffLines = prev ? _computeDiff(prev.content || "", c.content || "") : null;
+
+    cards += `<div class="diff-card">`;
+    cards += `<div class="diff-card-header">
+      <span class="diff-sha">${escH(c.sha)}</span>
+      <span class="diff-author">${escH(c.author)}</span>
+      <span class="diff-date" title="${escH(c.date)}">${formatRelative(c.date)}</span>
+      <span class="diff-msg">${escH(c.message)}</span>
+    </div>`;
+
+    if (diffLines) {
+      cards += `<div class="diff-body">`;
+      for (const dl of diffLines) {
+        const cls = dl.startsWith("+") ? "add" : dl.startsWith("-") ? "del" : dl.startsWith("@@") ? "meta" : "";
+        cards += `<div class="diff-line ${cls}">${escH(dl)}</div>`;
+      }
+      cards += `</div>`;
+    } else {
+      // First/oldest commit — show full content as additions
+      const lines = (c.content || "").split(/\r?\n/);
+      cards += `<div class="diff-body">`;
+      for (const l of lines) {
+        cards += `<div class="diff-line add">+${escH(l)}</div>`;
+      }
+      cards += `</div>`;
+    }
+    cards += `</div>`;
+  }
+
+  content.innerHTML = toolbar + `<div id="history-scroll">${cards}</div>`;
+}
+
+// Simple line-level diff (Myers-inspired, O(n) LCS approximation good enough for small files)
+function _computeDiff(oldText, newText) {
+  const oldLines = oldText.split(/\r?\n/);
+  const newLines = newText.split(/\r?\n/);
+  const out = [];
+
+  // Build a quick LCS using a map of line→positions in old
+  const oldIdx = new Map();
+  oldLines.forEach((l, i) => { if (!oldIdx.has(l)) oldIdx.set(l, []); oldIdx.get(l).push(i); });
+
+  // Simple patience-diff approximation: find matching lines, emit +/- for gaps
+  let oi = 0, ni = 0;
+  while (oi < oldLines.length || ni < newLines.length) {
+    if (oi < oldLines.length && ni < newLines.length && oldLines[oi] === newLines[ni]) {
+      out.push(" " + oldLines[oi]);
+      oi++; ni++;
+    } else {
+      // Find next match
+      let bestOi = -1, bestNi = -1, bestDist = Infinity;
+      for (let di = 0; di < 8; di++) {
+        if (ni + di < newLines.length && oldIdx.has(newLines[ni + di])) {
+          for (const idx of oldIdx.get(newLines[ni + di])) {
+            if (idx >= oi && di + (idx - oi) < bestDist) {
+              bestDist = di + (idx - oi); bestOi = idx; bestNi = ni + di;
+            }
+          }
+        }
+      }
+      if (bestOi === -1) {
+        // No near match — emit remaining as del + add
+        while (oi < oldLines.length) { out.push("-" + oldLines[oi++]); }
+        while (ni < newLines.length) { out.push("+" + newLines[ni++]); }
+        break;
+      }
+      while (oi < bestOi) { out.push("-" + oldLines[oi++]); }
+      while (ni < bestNi) { out.push("+" + newLines[ni++]); }
+    }
+  }
+  return out;
 }
 
 // ── Sidebar ────────────────────────────────────────────────────────────────
@@ -636,56 +876,47 @@ function buildSidebar(files) {
   const sidebar = document.getElementById("sidebar");
   sidebar.innerHTML = "";
 
-  // Group by folder
-  const groups = {};
-  for (const path of Object.keys(files)) {
-    const slash = path.indexOf("/");
-    const folder = slash === -1 ? "" : path.slice(0, slash);
-    if (!groups[folder]) groups[folder] = [];
-    groups[folder].push(path);
-  }
+  // Show root-level files only (chat/ files are accessed via tab filters)
+  const rootFiles = Object.keys(files).filter(p => !p.startsWith("chat/"));
 
-  // Chat section header
-  const hasChatFiles = Object.keys(files).some(p => p.startsWith("chat/"));
-  if (hasChatFiles) {
+  if (rootFiles.length) {
     const lbl = document.createElement("div");
-    lbl.className = "sidebar-folder"; lbl.textContent = "💬 Chats";
+    lbl.className = "sidebar-folder"; lbl.textContent = "📄 Files";
     sidebar.appendChild(lbl);
-    for (const path of (groups["chat"] || [])) {
+    for (const path of rootFiles) {
       const item = document.createElement("div");
       item.className = "sidebar-item";
-      const label = path.slice("chat/".length);
-      item.innerHTML = `<span class="si-icon">👤</span><span class="si-label">${escH(label)}</span>`;
-      item.addEventListener("click", () => openChatTab(path));
-      sidebar.appendChild(item);
-    }
-  }
-
-  // File sections
-  for (const [folder, paths] of Object.entries(groups)) {
-    if (folder === "chat") continue;
-    if (folder) {
-      const lbl = document.createElement("div");
-      lbl.className = "sidebar-folder"; lbl.textContent = "📁 " + folder;
-      sidebar.appendChild(lbl);
-    }
-    for (const path of paths) {
-      const item = document.createElement("div");
-      item.className = "sidebar-item";
-      const label = folder ? path.slice(folder.length+1) : path;
-      item.innerHTML = `<span class="si-icon">📄</span><span class="si-label">${escH(label)}</span>`;
+      item.dataset.path = path;
+      item.dataset.kind = "file";
+      item.innerHTML = `<span class="si-icon">📄</span><span class="si-label">${escH(path)}</span>`;
       item.addEventListener("click", () => openFileTab(path));
       sidebar.appendChild(item);
     }
   }
 }
 
+function _syncSidebarActive() {
+  const sidebar = document.getElementById("sidebar");
+  sidebar.querySelectorAll(".sidebar-item").forEach(el => el.classList.remove("active"));
+  if (!_activeTab || !_tabs.has(_activeTab)) return;
+  const tab = _tabs.get(_activeTab);
+  const path = tab.path;
+  if (!path || path === "__all__" || path === "__filtered__") return;
+  const kind = tab.type === "chat" ? "chat" : "file";
+  // For history tabs, highlight the underlying file
+  const lookupPath = tab.type === "history" ? path : path;
+  const lookupKind = tab.type === "history" ? "file" : kind;
+  sidebar.querySelectorAll(".sidebar-item").forEach(el => {
+    if (el.dataset.path === lookupPath) el.classList.add("active");
+  });
+}
+
 function openChatTab(path) {
-  // Find an existing tab for this path or create one
   for (const [id, tab] of _tabs) {
     if (tab.type === "chat" && tab.path === path) { selectTab(id); return; }
   }
-  const author = path.replace("chat/","").replace(".md","");
+  // Strip chat/ prefix and .md suffix for a clean display name
+  const author = path.replace(/^chat\//,"").replace(/\.md$/i,"");
   const entries = parseTimeline(_files[path] || "");
   createTab("💬 " + author, "chat", { path, entries, closeable: true });
 }
@@ -702,6 +933,7 @@ function openFileTab(path) {
 function loadExport(data) {
   if (!data || !data.files) { alert("Invalid export — expected { files: { ... } }"); return; }
   _files = data.files;
+  _history = data.history || {};
 
   // Reset tabs
   _tabs.clear(); _activeTab = null; _tabCounter = 0;
@@ -720,11 +952,14 @@ function loadExport(data) {
   buildSidebar(_files);
   _renderTabBar();
   _renderContent();
+  _syncSidebarActive();
 
   // Header meta
   const count = Object.keys(_files).length;
+  const histCount = Object.keys(_history).length;
   const ts = data.exported_at ? " · exported " + formatRelative(data.exported_at) : "";
-  document.getElementById("header-meta").textContent = count + " file" + (count !== 1 ? "s" : "") + " · " + (data.branch || "bob-context") + ts;
+  const histLabel = histCount ? ` · ${histCount} with history` : "";
+  document.getElementById("header-meta").textContent = count + " file" + (count !== 1 ? "s" : "") + histLabel + " · " + (data.branch || "bob-context") + ts;
 }
 
 // ── File input ─────────────────────────────────────────────────────────────
@@ -748,11 +983,12 @@ document.addEventListener("drop", e => {
   r.readAsText(file);
 });
 
-// ── Print ──────────────────────────────────────────────────────────────────
-// (use browser Ctrl+P / Cmd+P — print button removed from header in this design)
-
 // ── SSE live mode (when served via bob-log serve) ──────────────────────────
 if (location.protocol === "http:" || location.protocol === "https:") {
+  // Hide the load FAB — data comes from the server automatically
+  const fab = document.getElementById("load-fab");
+  if (fab) fab.style.display = "none";
+
   // Auto-load from server
   fetch("/api/export").then(r => r.json()).then(loadExport).catch(() => {});
   // Stream updates
@@ -761,120 +997,16 @@ if (location.protocol === "http:" || location.protocol === "https:") {
     fetch("/api/export").then(r => r.json()).then(data => {
       if (!data || !data.files) return;
       // Preserve active tab selection
-      const prevActive = _activeTab;
       const prevTabPath = _activeTab && _tabs.has(_activeTab) ? _tabs.get(_activeTab).path : null;
+      const prevTabType = _activeTab && _tabs.has(_activeTab) ? _tabs.get(_activeTab).type : null;
       loadExport(data);
-      // Try to restore active tab by path
+      // Try to restore active tab by path + type
       if (prevTabPath) {
         for (const [id, tab] of _tabs) {
-          if (tab.path === prevTabPath) { selectTab(id); break; }
+          if (tab.path === prevTabPath && tab.type === prevTabType) { selectTab(id); break; }
         }
       }
     }).catch(() => {});
-  });
-}
-
-// ── Demo mode (viewer.html?demo) ──────────────────────────────────────────
-if (location.search.includes("demo")) {
-  loadExport({
-    exported_at: new Date().toISOString(),
-    branch: "bob-context",
-    files: {
-      "chat/jaminleod.md": [
-        "## Entry-001 - user-prompt",
-        "**Timestamp:** 2026-11-24T11:03:12Z",
-        "**Author:** jaminleod",
-        "**Type:** user-prompt",
-        "**Session:** abc-001",
-        "",
-        "Let's plan the Bob Logbook project. What's the best architecture?",
-        "",
-        "---",
-        "",
-        "## Entry-002 - bob-response",
-        "**Timestamp:** 2026-11-24T11:03:58Z",
-        "**Author:** jaminleod",
-        "**Type:** bob-response",
-        "**Session:** abc-001",
-        "",
-        "I recommend a **shadow branch** approach using git orphan branches. The key insight is:",
-        "",
-        "- `git checkout --orphan bob-context` creates a branch with no shared history",
-        "- Writes go through `hash-object` → `mktree` → `commit-tree` → `update-ref`",
-        "- The working tree is **never switched** — zero interference with your code",
-        "",
-        "---",
-        "",
-        "## Entry-003 - user-prompt",
-        "**Timestamp:** 2026-11-24T12:30:05Z",
-        "**Author:** jaminleod",
-        "**Type:** user-prompt",
-        "**Session:** abc-002",
-        "",
-        "Write the `bob_log.py` init subcommand using git plumbing only — no branch switching.",
-        "",
-        "---",
-        "",
-        "## Entry-004 - bob-response",
-        "**Timestamp:** 2026-11-24T12:31:44Z",
-        "**Author:** jaminleod",
-        "**Type:** bob-response",
-        "**Session:** abc-002",
-        "",
-        "Built `bob_log.py` with these subcommands:",
-        "",
-        "| Command | Description |",
-        "|---|---|",
-        "| `init` | Creates the orphan branch |",
-        "| `read` | Reads a file from the shadow branch |",
-        "| `write` / `append` | Writes or appends content |",
-        "| `ls` | Lists files at a path |",
-        "| `export-json` | Dumps everything as JSON for the viewer |",
-        "",
-        "All operations use git plumbing — `hash-object`, `mktree`, `commit-tree`, `update-ref`.",
-        "",
-        "---"
-      ].join("\n"),
-      "chat/alexvu31.md": [
-        "## Entry-001 - user-prompt",
-        "**Timestamp:** 2026-11-24T14:10:22Z",
-        "**Author:** alexvu31",
-        "**Type:** user-prompt",
-        "**Session:** def-001",
-        "",
-        "Execute sub-task 4 — build `viewer.html`.",
-        "",
-        "---",
-        "",
-        "## Entry-002 - bob-response",
-        "**Timestamp:** 2026-11-24T14:11:05Z",
-        "**Author:** alexvu31",
-        "**Type:** bob-response",
-        "**Session:** def-001",
-        "",
-        "Built `viewer.html` — a single-file HTML timeline viewer with:",
-        "",
-        "- File picker and drag-and-drop JSON import",
-        "- **Left panel**: file tree grouped by folder",
-        "- **Right panel**: chat files → timeline cards; other files → Markdown",
-        "- Author colour badges (hashed from username)",
-        "- `@media print` CSS for PDF screenshots",
-        "",
-        "---"
-      ].join("\n"),
-      "decisions.md": [
-        "# Decisions",
-        "",
-        "## 2026-11-24 — Architecture",
-        "",
-        "Shadow branch as AI workspace. Python 3 stdlib only. No pip installs.",
-        "",
-        "## 2026-11-24 — Export Format",
-        "",
-        "Agreed JSON: `{ exported_at, branch, files: { path: content } }`"
-      ].join("\n"),
-      "README.md": "# Bob Logbook — AI Workspace\n\nThis is the bob-context shadow branch.\nFiles here are managed by `bob_log.py` and auto-captured by Bob lifecycle hooks.\n"
-    }
   });
 }
 </script>
