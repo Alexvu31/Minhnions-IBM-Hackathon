@@ -129,3 +129,18 @@ flowchart LR
 **3. "All Contributors" view** — synthesised virtually in the viewer at load time by merging entries from all `chat/` files, sorting by timestamp. A new sidebar entry "💬 All Contributors" appears at the top of the chat group. No hook changes, no data duplication.
 
 Does this match what you had in mind, or do you want to adjust anything before I write this up as a plan file and implement it?
+
+---
+**user-prompt** | 2026-11-24T18:19:57Z | author: `jaminleod` | session: `8606d5cc441ea48f44da5e843fb64605`
+
+Here's another thing, looking at the README it seems like bob on the other side thought that this project was for teammates to pick up where someone else left off;
+
+## Why it exists
+
+- **Zero manual effort** — install once, capture forever.
+- **Dogfoods Bob** — the tool was built entirely using Bob; this README was written by Bob.
+- **Team-friendly** — teammates can open the viewer and pick up exactly where someone left off, without reading the full chat history.
+- **No external dependencies** — Python 3 stdlib only (`subprocess`, `pathlib`, `json`, `os`, `sys`). No pip installs, no accounts, no APIs.
+
+
+I was thinking if the AI made changes and resolved conflicts via the bob shadow branch they could coordinate with each other and work simulatneously... checking for any changes with bob-log plumbing to see diffs since last read or something. Anything relevant to them. Is that possible? Do you see the final version? It's agents coordinating together but also the ability to coordinate asynchronously to a degree via git
