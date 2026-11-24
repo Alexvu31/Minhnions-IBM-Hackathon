@@ -346,3 +346,12 @@ Okay we don't need an avatar, and the author badge says it's unknown. And the 'T
 NO, do not parse both, the old format can be removed
 
 ---
+## Entry-021 - user-prompt
+**Timestamp:** 2026-11-24T18:47:29Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** 8606d5cc441ea48f44da5e843fb64605
+
+I'd also like from now on to just use the data from our shadow branch, allowing us to dogfood our development easily
+
+---
