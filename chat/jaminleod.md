@@ -863,3 +863,17 @@ Done — `a00969a`. What changed:
 We need to be able to explain why this UI & tool is not just a glorified chatbot UI
 
 ---
+
+## Entry-052 - bob-response
+**Timestamp:** 2026-11-24T19:36:06Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** f7f23ca4e278d3746ce170b98d1796ec
+
+Done — `4812101`. The new section sits right before "Why it exists" and leads with a direct comparison table. The closing line does the work:
+
+> *The viewer is the read surface. The real product is the **shadow branch**: a git-native shared workspace where every AI-assisted decision is a commit, every file is diffable, and no context is ever lost.*
+
+That's also a ready-made pull quote for the PDF.
+
+---
