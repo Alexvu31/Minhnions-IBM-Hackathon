@@ -33,17 +33,29 @@ BRANCH = "bob-context"
 # ---------------------------------------------------------------------------
 
 def _check_path(path: str) -> None:
-    """Raise ValueError if path would escape the shadow branch root."""
+    """Raise ValueError if path would escape the shadow branch root or violate flat-structure rules.
+
+    Allowed paths:
+      - Any single-component filename at the root (e.g. 'notes.md', 'decisions.md')
+      - chat/<username>.md — the one permitted subdirectory, used by the hook
+
+    Everything else (arbitrary subdirectories) is rejected.
+    """
     if path.startswith("/"):
         raise ValueError(f"Path must be relative, got: {path!r}")
     parts = PurePosixPath(path).parts
     if not parts:
         raise ValueError("Path must not be empty.")
-    if parts[0] == "..":
-        raise ValueError(f"Path must not start with '..': {path!r}")
-    # Reject any '.. ' component anywhere in the path
     if ".." in parts:
         raise ValueError(f"Path must not contain '..': {path!r}")
+    # Enforce flat structure: allow root files and chat/* only
+    if len(parts) > 1:
+        if parts[0] != "chat":
+            raise ValueError(
+                f"Subdirectories are not allowed (only root files and chat/* are permitted): {path!r}"
+            )
+        if len(parts) > 2:
+            raise ValueError(f"Path inside chat/ must be a single filename: {path!r}")
 
 
 # ---------------------------------------------------------------------------
@@ -320,38 +332,181 @@ def cmd_export(args) -> None:
     print(f"Exported '{args.path}' -> '{dest}'")
 
 
-def cmd_export_json(args) -> None:
-    """Dump every file on bob-context to a JSON file for the HTML viewer.
-
-    Output format:
-        { "exported_at": "<ISO8601>", "branch": "bob-context", "files": { "<path>": "<content>", ... } }
-    """
-    import datetime
+def cmd_delete(args) -> None:
+    """Delete a file from bob-context."""
+    _check_path(args.path)
     if not _branch_exists():
         print(f"Error: branch '{BRANCH}' does not exist. Run `bob-log init` first.", file=sys.stderr)
         sys.exit(1)
 
-    # Walk the entire tree recursively
+    # Check the file exists first
+    result = _git("cat-file", "-e", f"{BRANCH}:{args.path}", check=False)
+    if result.returncode != 0:
+        print(f"Error: '{args.path}' not found on branch '{BRANCH}'.", file=sys.stderr)
+        sys.exit(1)
+
+    # Rebuild the root tree without the target entry
+    parts = PurePosixPath(args.path).parts
+
+    def _remove_from_tree(parts_remaining: tuple, current_prefix: str) -> str:
+        """Recursively rebuild the tree with the target entry removed."""
+        if current_prefix:
+            result = _git("ls-tree", f"{BRANCH}:{current_prefix}", check=False)
+        else:
+            result = _git("ls-tree", BRANCH, check=False)
+        lines = [l for l in result.stdout.splitlines() if l.strip()]
+
+        entry_map = {}
+        for line in lines:
+            meta, name = line.split("\t", 1)
+            mode, obj_type, sha = meta.split()
+            entry_map[name] = (mode, obj_type, sha)
+
+        name = parts_remaining[0]
+        if len(parts_remaining) == 1:
+            # Leaf: remove it
+            entry_map.pop(name, None)
+        else:
+            # Intermediate dir: recurse
+            sub_prefix = f"{current_prefix}/{name}" if current_prefix else name
+            if entry_map.get(name):
+                sub_tree_sha = _remove_from_tree(parts_remaining[1:], sub_prefix)
+                if sub_tree_sha:
+                    entry_map[name] = ("040000", "tree", sub_tree_sha)
+                else:
+                    # Empty subtree — remove the directory entry too
+                    entry_map.pop(name, None)
+
+        if not entry_map:
+            return ""
+        mktree_input = "\n".join(
+            f"{mode} {obj_type} {sha}\t{entry_name}"
+            for entry_name, (mode, obj_type, sha) in entry_map.items()
+        ) + "\n"
+        return _git("mktree", input=mktree_input).stdout.strip()
+
+    new_tree_sha = _remove_from_tree(parts, "")
+    if not new_tree_sha:
+        print("Error: resulting tree would be empty.", file=sys.stderr)
+        sys.exit(1)
+
+    parent_sha = _current_commit_sha()
+    commit_sha = _commit_tree(new_tree_sha, f"delete: {args.path}", parent_sha)
+    _git("update-ref", f"refs/heads/{BRANCH}", commit_sha)
+    print(f"Deleted '{args.path}' from '{BRANCH}'.")
+
+
+# ---------------------------------------------------------------------------
+# Sub-Task 8 — log and diff commands
+# ---------------------------------------------------------------------------
+
+def cmd_log(args) -> None:
+    """Print commit history of bob-context, optionally filtered by path and/or --since <sha>."""
+    if not _branch_exists():
+        print(f"Branch '{BRANCH}' does not exist. Run `bob-log init` first.", file=sys.stderr)
+        sys.exit(1)
+
+    rev_range = f"{args.since}..{BRANCH}" if getattr(args, "since", None) else BRANCH
+    log_args = ["log", rev_range, "--format=%h\t%ae\t%ai\t%s"]
+    if getattr(args, "path", None):
+        _check_path(args.path)
+        log_args += ["--", args.path]
+
+    result = _git(*log_args, check=False)
+    if result.returncode != 0 or not result.stdout.strip():
+        print("(no commits)")
+        return
+    for line in result.stdout.splitlines():
+        parts = line.split("\t", 3)
+        if len(parts) == 4:
+            sha, author, date, msg = parts
+            print(f"{sha}  {date[:19]}  {author}  {msg}")
+        else:
+            print(line)
+
+
+def cmd_diff(args) -> None:
+    """Print unified diff of the last two commits touching <path> on bob-context."""
+    _check_path(args.path)
+    if not _branch_exists():
+        print(f"Branch '{BRANCH}' does not exist. Run `bob-log init` first.", file=sys.stderr)
+        sys.exit(1)
+
+    result = _git("log", BRANCH, "--format=%H", "-2", "--", args.path, check=False)
+    commits = [c for c in result.stdout.splitlines() if c.strip()]
+    if len(commits) < 2:
+        print(f"No prior version of '{args.path}' to diff against.")
+        return
+
+    newer, older = commits[0], commits[1]
+    diff = _git("diff", older, newer, "--", args.path, check=False)
+    sys.stdout.write(diff.stdout)
+
+
+# ---------------------------------------------------------------------------
+# Export helpers (shared between cmd_export_json and cmd_serve)
+# ---------------------------------------------------------------------------
+
+def _file_history(path: str, limit: int = 20) -> list:
+    """Return the last `limit` commits touching `path`, each with content at that revision."""
+    result = _git(
+        "log", BRANCH, f"--format=%H\t%ae\t%ai\t%s", f"-{limit}", "--", path,
+        check=False,
+    )
+    commits = []
+    for line in result.stdout.splitlines():
+        parts = line.split("\t", 3)
+        if len(parts) == 4:
+            sha, author, date, msg = parts
+            blob = _git("show", f"{sha}:{path}", check=False).stdout
+            commits.append({"sha": sha[:8], "author": author, "date": date, "message": msg, "content": blob})
+    return commits
+
+
+def _build_export_payload() -> dict:
+    """Build the full export dict (files + history) used by both cmd_export_json and cmd_serve."""
+    import datetime
+    if not _branch_exists():
+        return {"exported_at": "", "branch": BRANCH, "files": {}, "history": {}}
+
     result = _git("ls-tree", "-r", "--name-only", BRANCH)
     paths = [p for p in result.stdout.splitlines() if p.strip()]
+    files = {path: _read_blob(path) for path in paths}
 
-    files = {}
+    # Include per-file commit history so the viewer can show a "History" diff view
+    history = {}
     for path in paths:
-        files[path] = _read_blob(path)
+        commits = _file_history(path)
+        if len(commits) >= 2:
+            history[path] = commits
 
     exported_at = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    # ensure_ascii=True keeps the JSON safe for all stdout encodings (e.g. Windows cp1252)
-    payload = json.dumps(
-        {"exported_at": exported_at, "branch": BRANCH, "files": files},
-        ensure_ascii=True,
-        indent=2,
-    )
+    return {"exported_at": exported_at, "branch": BRANCH, "files": files, "history": history}
+
+
+def cmd_export_json(args) -> None:
+    """Dump every file on bob-context to a JSON file for the HTML viewer.
+
+    Output format:
+        {
+          "exported_at": "<ISO8601>",
+          "branch": "bob-context",
+          "files": { "<path>": "<content>", ... },
+          "history": { "<path>": [ { sha, author, date, message, content }, ... ], ... }
+        }
+    """
+    if not _branch_exists():
+        print(f"Error: branch '{BRANCH}' does not exist. Run `bob-log init` first.", file=sys.stderr)
+        sys.exit(1)
+
+    payload_dict = _build_export_payload()
+    payload = json.dumps(payload_dict, ensure_ascii=True, indent=2)
 
     if args.dest:
         dest = Path(args.dest)
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_text(payload, encoding="utf-8")
-        print(f"Exported {len(files)} file(s) -> '{dest}'")
+        print(f"Exported {len(payload_dict['files'])} file(s) -> '{dest}'")
     else:
         sys.stdout.buffer.write((payload + "\n").encode("utf-8"))
 
@@ -362,15 +517,7 @@ def cmd_export_json(args) -> None:
 
 def _export_json_bytes() -> bytes:
     """Return the export-json payload as UTF-8 bytes (for the HTTP server)."""
-    if not _branch_exists():
-        return json.dumps({"exported_at": "", "branch": BRANCH, "files": {}}).encode("utf-8")
-    import datetime
-    result = _git("ls-tree", "-r", "--name-only", BRANCH)
-    paths = [p for p in result.stdout.splitlines() if p.strip()]
-    files = {path: _read_blob(path) for path in paths}
-    exported_at = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    payload = json.dumps({"exported_at": exported_at, "branch": BRANCH, "files": files},
-                         ensure_ascii=True, indent=2)
+    payload = json.dumps(_build_export_payload(), ensure_ascii=True, indent=2)
     return payload.encode("utf-8")
 
 
@@ -502,6 +649,19 @@ def build_parser() -> argparse.ArgumentParser:
         help="Destination .json path (omit to print to stdout)",
     )
 
+    # delete
+    p_delete = sub.add_parser("delete", help="Delete a file from bob-context")
+    p_delete.add_argument("path", help="Relative path within bob-context")
+
+    # log
+    p_log = sub.add_parser("log", help="Show commit history of bob-context")
+    p_log.add_argument("path", nargs="?", default=None, help="Filter to commits touching this path")
+    p_log.add_argument("--since", metavar="SHA", default=None, help="Show only commits after this SHA")
+
+    # diff
+    p_diff = sub.add_parser("diff", help="Show unified diff of last two commits touching a file")
+    p_diff.add_argument("path", help="Relative path within bob-context")
+
     # serve
     p_serve = sub.add_parser(
         "serve",
@@ -526,6 +686,9 @@ HANDLERS = {
     "ls": cmd_ls,
     "export": cmd_export,
     "export-json": cmd_export_json,
+    "delete": cmd_delete,
+    "log": cmd_log,
+    "diff": cmd_diff,
     "serve": cmd_serve,
 }
 

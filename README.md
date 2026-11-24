@@ -95,6 +95,9 @@ python3 bob_log.py <subcommand> [args]
 | `ls` | `bob_log.py ls [path]` | Lists files/directories on `bob-context` at the given path |
 | `export` | `bob_log.py export <path> <dest>` | Copies a single file from `bob-context` to the working tree |
 | `export-json` | `bob_log.py export-json [dest.json]` | Dumps all files to a JSON snapshot for the viewer |
+| `log` | `bob_log.py log [--since <sha>] [path]` | Shows commit history; optionally filtered by SHA range or path |
+| `diff` | `bob_log.py diff <path>` | Shows unified diff between the last two commits touching a file |
+| `serve` | `bob_log.py serve [--port N]` | Starts a local HTTP server at `localhost:4242` with live SSE updates |
 
 All paths are relative to the shadow-branch root. Absolute paths and `..` traversals are rejected.
 
@@ -118,17 +121,28 @@ python3 bob_log.py export-json bob-context-export.json
 
 ## Viewer usage
 
-Open `viewer.html` in any browser — no server required.
+### Live mode (recommended)
 
-1. Click **Choose file** (or drag and drop) and select `bob-context-export.json`.
-2. The workspace renders immediately:
-   - **Left panel** — file tree, grouped by folder
-   - **Right panel** — selected file content:
-     - Files under `chat/` → colour-coded timeline cards (author, event type, timestamp, session ID, message body)
-     - All other files → plain Markdown renderer
-3. Use **Print** (top-right) to generate a print-ready version for documentation.
+```sh
+python3 bob_log.py serve
+# Open http://localhost:4242 in your browser
+```
 
-**Demo mode:** Open `viewer.html?demo` to see sample data without loading a file.
+The viewer auto-loads and updates in real time via SSE — no manual export needed.
+
+### Static mode
+
+1. Export a snapshot: `python3 bob_log.py export-json bob-context-export.json`
+2. Open `viewer.html` in any browser and click **Load export** (bottom-right), or drag-and-drop the JSON file.
+
+### What you see
+
+- **Brand bar** — `Bob Logbook` title + tab bar + file/message counts + export timestamp
+- **Left sidebar** — file tree; hover to expand, click to open a tab; active file highlighted
+- **Tab bar** — `💬 All Chats (N)` always first; per-author chat tabs; file tabs; history tabs
+- **Chat view** — ChatGPT-style bubbles (user right/blue, Bob left/grey); filter by author or session, or open filtered view as a new tab
+- **File view** — Markdown-rendered file; `🕐 History (N)` button opens a diff timeline if the file has multiple revisions
+- **History / diff view** — each commit shown as a card with green/red line-level diff against the prior version
 
 ---
 
@@ -166,13 +180,18 @@ The `-c core.autocrlf=false` flag is passed to every git call to ensure consiste
 Each hook invocation appends a block like this to `chat/$USER.md`:
 
 ```markdown
----
-**bob-response** | 2026-11-24T17:00:00Z | author: `jaminleod` | session: `abc-123`
+## Entry-035 - bob-response
+**Timestamp:** 2026-11-24T17:00:00Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** abc123def456
 
 Bob's response text goes here.
+
+---
 ```
 
-The viewer parses these blocks and renders them as timeline cards.
+The viewer parses the `## Entry-NNN` blocks and renders them as chat bubbles.
 
 ---
 
