@@ -7,20 +7,20 @@
 **Why this wins:** It treats the shadow branch as shared AI working memory across sessions and teammates. Bob can leave notes, read back prior context, and collaborate across machines — all governed by git. Multiple agents working simultaneously each see what the other is doing through the branch. It dogfoods Bob, introduces a novel architectural pattern, and directly addresses a pain point IBM's own developers will recognise.
 
 **Deliverables:**
-1. `bob_log.py` — Python 3 CLI (stdlib only): `init`, `read`, `write`, `append`, `commit`, `ls`, `export`, `export-json`, `log`, `diff`
+1. `bob_log.py` — Python 3 CLI (stdlib only): `init`, `read`, `write`, `append`, `commit`, `ls`, `export`, `export-json`, `log`, `diff`, `serve`
 2. `bob-log-hook.py` — hook wrapper wiring `Stop`, `UserPromptSubmit`, and `SessionStart` to the shadow branch
 3. `.bob/settings.json` — hook config
-4. `viewer.html` — single-file HTML workspace viewer with timeline, Markdown rendering, and All Contributors view
+4. `viewer.html` — single-file HTML workspace viewer: IBM Carbon blue, ChatGPT-style chat bubbles, tabbed layout, filter panel, SSE live updates via `bob-log serve`
 5. `.bob/skills/bob-log/SKILL.md` — Bob skill teaching agents to use `bob-log` commands proactively
 6. `README.md` — setup, command reference, hook install guide
 7. PDF submission (4 pages, 11-pt minimum)
 
-**Tech stack:** Python 3 stdlib only, git plumbing (no branch switching), pure HTML/CSS/JS for viewer.
+**Tech stack:** Python 3 stdlib only, git plumbing (no branch switching), pure HTML/CSS/JS for viewer, SSE for live updates.
 
 **Division of labour:**
 - **jaminleod:** Sub-Tasks 1–3, 7–9 (shadow branch + CLI + hooks + coordination layer + skill)
 - **alexvu31:** Sub-Task 4 (viewer fixes)
-- **Both:** Sub-Tasks 5–6 (README + PDF)
+- **Both:** Sub-Tasks 5–6, 7b–7c (viewer redesign + serve + PDF)
 
 ---
 
@@ -334,6 +334,80 @@
 - The skill file location must be `.bob/skills/bob-log/SKILL.md` for Bob to discover it
 - `bob-log log --since ""` (empty string) should return all commits — handle the empty-string case as "no filter"
 - `git fetch origin bob-context:bob-context` fast-forwards the local ref without switching branches — consistent with the no-checkout plumbing pattern used throughout
+
+---
+
+## Sub-Task 7b — Viewer Chat UI Redesign
+
+**Status:** [ ] pending
+
+**Intent:** Replace the stacked card layout with a proper chat interface styled with IBM Carbon Design. The viewer should feel like a real AI chat product, not a file printer.
+
+**Expected Outcomes:**
+- IBM Carbon palette throughout: `#0F62FE` (Blue 60) for user bubbles and primary actions, `#001141` dark navy for the header, `#F4F4F4` for AI response bubbles, white for the main background
+- User (`user-prompt`) messages: right-aligned, `#0F62FE` background, white text, rounded bubble (border-radius 18px 18px 4px 18px)
+- AI (`bob-response`) messages: left-aligned, `#F4F4F4` background, dark text, avatar icon on left, rounded bubble (border-radius 18px 18px 18px 4px)
+- No card borders — clean and minimal, messages separated by whitespace only
+- Tabbed layout: a persistent tab bar at the top of the main area; first tab is always "💬 All Chats", additional tabs are auto-generated per author from loaded data, plus any file tabs opened from the sidebar
+- Each chat tab has a filter button (funnel icon) that opens a dropdown with checkboxes for author and session ID — filtering is dynamic, applied without reloading
+- Multiple instances of the same tab type are allowed (e.g. two "All Chats" tabs with different filters)
+- File tree in sidebar becomes a narrow icon-only panel; hovering expands it; clicking a file opens it as a new closeable tab
+- Tabs are closeable (× button) except the first "All Chats" tab
+- Timestamps shown as relative ("2 hours ago") with absolute ISO on hover
+
+**Todo List:**
+1. Restructure `viewer.html` layout: remove the existing two-panel layout, introduce a tab bar above the main content area and a collapsed icon sidebar on the left
+2. Replace `.card` / `.card-header` / `.card-body` CSS with chat bubble CSS: `.msg-row` (flex row), `.bubble` (the message itself), `.bubble.user` (right-aligned IBM blue), `.bubble.ai` (left-aligned grey), `.bubble .md-view` for body content
+3. Implement tab bar: `createTab(id, label, closeable)`, `selectTab(id)`, `closeTab(id)` — tabs stored in a JS `Map`; active tab highlighted with IBM blue underline
+4. Implement filter panel: clicking the funnel icon on a chat tab opens a `<details>`-based dropdown listing all authors and session IDs found in the current tab's data; unchecking hides those messages without re-parsing
+5. Implement collapsed sidebar: file tree icons only by default; CSS `width` transition on hover to reveal labels; clicking a file calls `openFileTab(path)`
+6. Add relative timestamp formatting (`formatRelative(iso)`) with `title` attribute for absolute ISO on hover
+7. Preserve All Contributors merge logic and per-author tab generation from Sub-Task 7
+8. Update `@media print` to hide the tab bar and sidebar, print only the active tab content
+
+**Relevant Context:**
+- IBM Carbon Design tokens: Blue 60 `#0F62FE`, Blue 80 `#002D9C` (hover), Gray 10 `#F4F4F4`, Gray 100 `#161616`, Cool Gray 10 `#F2F4F8`, White `#FFFFFF`
+- The existing `renderMarkdown()`, `parseTimeline()`, `authorColour()`, `renderAllContributors()` functions are reusable — do not rewrite them
+- The bubble shape mirrors ChatGPT: user messages align right with the rounded corner on the bottom-right cut flat; AI messages align left with the bottom-left corner cut flat
+- Filter state lives in a per-tab JS object `{ authors: Set, sessions: Set }` — the render function reads this before emitting message rows
+
+---
+
+## Sub-Task 7c — `bob-log serve` Live Server
+
+**Status:** [ ] pending
+
+**Intent:** Add a `bob-log serve` subcommand that starts a local HTTP server so the viewer updates in real time as new commits land on the shadow branch — no manual re-export and file reload required.
+
+**Expected Outcomes:**
+- `bob-log serve [--port N]` starts a Python `http.server`-based server on `localhost:N` (default 4242)
+- `GET /` — serves `viewer.html` from the same directory as `bob_log.py`
+- `GET /api/export` — returns the live `export-json` payload (JSON, `Content-Type: application/json`)
+- `GET /api/stream` — SSE endpoint; polls `bob-context` HEAD SHA every second, pushes `data: new-data\n\n` when it changes; keeps connection alive with `: ping\n\n` comments every 15 s
+- `viewer.html` detects if loaded via HTTP (checks `location.protocol === 'http:'`): if so, connects `new EventSource('/api/stream')` and re-fetches `/api/export` on `new-data` event, merging new data without losing the active tab or filter state
+- If loaded as a local file (`file:` protocol), falls back to the existing JSON file picker — no behaviour change for the static use case
+- Server prints the URL on start: `Bob Logbook server running at http://localhost:4242 — open in your browser`
+- Ctrl+C shuts down cleanly
+
+**Todo List:**
+1. Add `cmd_serve` to `bob_log.py`:
+   - Subclass `http.server.BaseHTTPRequestHandler` with `do_GET`
+   - Route `/` → read and serve `viewer.html` bytes, `Content-Type: text/html`
+   - Route `/api/export` → call `export-json` logic inline (reuse `cmd_export_json` internals), return JSON bytes
+   - Route `/api/stream` → set headers `Content-Type: text/event-stream`, `Cache-Control: no-cache`, `X-Accel-Buffering: no`; enter a loop reading HEAD SHA every second, writing `data: new-data\n\n` on change and `: ping\n\n` every 15 s; exit loop on `BrokenPipeError`
+   - Start `http.server.HTTPServer(('localhost', port), Handler)` and call `serve_forever()`
+   - Catch `KeyboardInterrupt`, print shutdown message, exit 0
+2. Wire into `build_parser()` and `HANDLERS` with `--port` optional arg (default 4242)
+3. In `viewer.html`, add startup detection block: if `location.protocol` is `http:` or `https:`, skip the file picker on first load and immediately fetch `/api/export`; connect `EventSource('/api/stream')` and on `message` event re-fetch `/api/export` and call `loadExport()` with the result, preserving active tab
+4. Add `openUrl` call in `cmd_serve` after server starts: `webbrowser.open(f'http://localhost:{port}')` — stdlib `webbrowser` module, no dependency
+5. Test: run `bob-log serve`, open browser, write a file via `bob-log write`, confirm the viewer updates within 2 seconds
+
+**Relevant Context:**
+- SSE response format: `Content-Type: text/event-stream`; each event is `data: <payload>\n\n`; keep-alive comments are `: <anything>\n\n`
+- `BrokenPipeError` is the correct exception to catch when the browser closes the SSE connection
+- `http.server.HTTPServer` is single-threaded; SSE loop blocks the thread — use `ThreadingHTTPServer` from `http.server` to handle the export endpoint concurrently while SSE is streaming
+- HEAD SHA polling: `_git("rev-parse", BRANCH, check=False).stdout.strip()` — returns empty string if branch absent
+- `webbrowser.open()` is a stdlib call; wrap in `try/except` so a headless server environment doesn't crash serve
 
 ---
 

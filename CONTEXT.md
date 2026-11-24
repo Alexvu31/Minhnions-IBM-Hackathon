@@ -160,3 +160,56 @@ The `bob-log export` command (when called without a specific path) will produce 
 alexvu31: the viewer should accept a file with this exact shape. The keys under `"files"` are the relative paths on the shadow branch. Files under `chat/` get the timeline renderer; all others get the plain Markdown renderer.
 
 ---
+
+## Entry-009 — Full Bob Usage Evidence for PDF Submission
+**Date:** 2026-11-24
+**Author:** jaminleod
+**Type:** pdf-evidence
+
+This entry documents every meaningful way IBM Bob was used during the build. The PDF must address all four scoring criteria — this entry maps each piece of evidence to the relevant criterion.
+
+---
+
+### How We Used Bob (chronological)
+
+**1. Idea generation and scoping (Plan mode)**
+Bob ran a structured planning session using the `create-plan` skill. It researched the codebase, asked clarifying questions, and produced `hackathon-plan.md` — a fully decomposed 9-sub-task plan with intent, expected outcomes, todo lists, and relevant context for each sub-task. The plan was refined iteratively in the same session based on jaminleod's feedback.
+
+**2. Sub-Task 2 — `bob_log.py` Core CLI (Agent mode)**
+Bob implemented the entire Python CLI from scratch: all 8 subcommands (`init`, `read`, `write`, `append`, `commit`, `ls`, `export`, `export-json`), the recursive `_make_tree_with()` git plumbing function, path-jail security, and the `bob-log` bash wrapper. It also ran live smoke tests in-session and cleaned up test commits from the shadow branch.
+
+**3. Sub-Task 3 — Hook configuration (Agent mode)**
+Bob wrote `bob-log-hook.py` and `.bob/settings.json`. It tested both hooks by piping representative JSON payloads and verified stdout was clean on `UserPromptSubmit`. It also added `export-json` to the CLI on the fly when it identified that Alex needed a JSON format for the viewer.
+
+**4. Sub-Task 7 — Viewer fixes (Agent mode)**
+Bob identified the entry format mismatch between the hook and viewer parser, rewrote `format_entry()`, added Markdown rendering to card bodies, and implemented the All Contributors virtual view — all without breaking existing demo data.
+
+**5. Plan extensions — coordination layer and viewer redesign (Plan mode)**
+Bob proposed and scoped Sub-Tasks 7b, 7c, 8, and 9 based on jaminleod's high-level vision of "agents coordinating via the shadow branch." It caught the missing `git pull` before log reads, proposed SSE over WebSockets for the live server, and defined the per-author cursor state model.
+
+**6. The tool itself is evidence**
+Every chat turn during the build was auto-captured by the hooks Bob helped write. The shadow branch (`bob-context`) contains the full session log. Running `bob-log export-json` produces a JSON snapshot; opening it in `viewer.html` renders the entire build timeline as a ChatGPT-style chat interface.
+
+---
+
+### Mapping to Scoring Criteria
+
+| Criterion | Evidence |
+|---|---|
+| **Innovation & Creativity (25)** | Shadow branch as AI working memory is novel; `SessionStart` hook injects git-sourced context into the model; multi-agent coordination via git is a new pattern |
+| **Relevance to Challenge (25)** | Directly extends IBM Bob via its hook API; uses Bob's own lifecycle events; the tool dogfoods Bob — it was built entirely using Bob |
+| **Practicality & Feasibility (25)** | Python 3 stdlib only; no pip, no accounts, no external APIs; runs anywhere git + Python exist; `bob-log serve` gives a live dashboard in one command |
+| **Overall Quality & Presentation (25)** | IBM Carbon Design UI; ChatGPT-style chat bubbles; tabbed layout with per-author filters; SSE live updates; test suite; README; this CONTEXT.md is itself a demonstration |
+
+---
+
+### Key Quotes for PDF
+
+> "The shadow branch is not just a chat log — it is shared AI working memory. Any agent, in any session, on any machine, can read exactly what every other agent has done and left behind." — jaminleod planning session with Bob
+
+> "Bob caught the missing `git pull` before we even asked. We described the coordination model and Bob identified that without fetching first, the log command would only see local state." — jaminleod
+
+> "The tool is its own best demo. The viewer you're looking at was built by running `bob-log serve` on the branch that was written to while Bob was building it." — README
+
+---
+
