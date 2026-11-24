@@ -461,3 +461,27 @@ Ready to implement when you switch to agent mode — start with Sub-Task 7b?
 Make a commit message for this before I do any work
 
 ---
+
+## Entry-012 - bob-response
+**Timestamp:** 2026-11-24T18:37:06Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** 8606d5cc441ea48f44da5e843fb64605
+
+```
+docs: add Sub-Tasks 7b/7c to plan and PDF evidence to CONTEXT.md
+
+- hackathon-plan.md: add Sub-Task 7b (IBM Carbon chat UI redesign —
+  bubble layout, tabbed nav, per-tab filters, collapsed sidebar) and
+  Sub-Task 7c (bob-log serve — ThreadingHTTPServer + SSE live updates);
+  update deliverables and division of labour to reflect new scope
+- CONTEXT.md: add Entry-009 — full Bob usage evidence for PDF submission,
+  chronological build log, scoring criteria matrix, and pull quotes
+```
+
+**Tag** (optional — this is docs/planning, so a lightweight tag is fine):
+```
+git tag v0.5-plan-7b-7c -m "Plan: Sub-Tasks 7b and 7c scoped + PDF evidence captured"
+```
+
+---
