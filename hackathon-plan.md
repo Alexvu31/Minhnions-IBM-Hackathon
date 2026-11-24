@@ -53,7 +53,7 @@
 
 ## Sub-Task 2 — `bob_log.py` Core CLI
 
-**Status:** [ ] pending
+**Status:** [x] done
 
 **Intent:** Write the Python CLI that is the engine for all shadow-branch operations. All commands operate on the `bob-context` branch using git plumbing — the working tree is never switched.
 

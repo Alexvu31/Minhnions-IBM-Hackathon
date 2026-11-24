@@ -1,0 +1,381 @@
+#!/usr/bin/env python3
+"""bob_log.py — Bob Logbook CLI
+
+Operates on the `bob-context` shadow branch using git plumbing.
+The working tree is never switched; all reads and writes go directly
+through git object/ref manipulation.
+
+Usage:
+    bob-log init
+    bob-log read <path>
+    bob-log write <path> <content>
+    bob-log append <path> <content>
+    bob-log commit <message>
+    bob-log ls [path]
+    bob-log export <path> <dest>
+"""
+
+import argparse
+import os
+import sys
+import subprocess
+from pathlib import Path, PurePosixPath
+
+BRANCH = "bob-context"
+
+
+# ---------------------------------------------------------------------------
+# Path safety
+# ---------------------------------------------------------------------------
+
+def _check_path(path: str) -> None:
+    """Raise ValueError if path would escape the shadow branch root."""
+    if path.startswith("/"):
+        raise ValueError(f"Path must be relative, got: {path!r}")
+    parts = PurePosixPath(path).parts
+    if not parts:
+        raise ValueError("Path must not be empty.")
+    if parts[0] == "..":
+        raise ValueError(f"Path must not start with '..': {path!r}")
+    # Reject any '.. ' component anywhere in the path
+    if ".." in parts:
+        raise ValueError(f"Path must not contain '..': {path!r}")
+
+
+# ---------------------------------------------------------------------------
+# Git helpers
+# ---------------------------------------------------------------------------
+
+def _git(*args: str, input: str = None, check: bool = True) -> subprocess.CompletedProcess:
+    """Run a git command, return CompletedProcess. Raises on non-zero exit when check=True."""
+    result = subprocess.run(
+        ["git"] + list(args),
+        capture_output=True,
+        text=True,
+        input=input,
+    )
+    if check and result.returncode != 0:
+        raise RuntimeError(
+            f"git {' '.join(args)!r} failed (exit {result.returncode}):\n{result.stderr.strip()}"
+        )
+    return result
+
+
+def _branch_exists() -> bool:
+    """Return True if the bob-context branch ref exists."""
+    result = _git("rev-parse", "--verify", BRANCH, check=False)
+    return result.returncode == 0
+
+
+def _current_tree_sha() -> str:
+    """Return the tree SHA currently pointed to by bob-context HEAD."""
+    return _git("rev-parse", f"{BRANCH}^{{tree}}").stdout.strip()
+
+
+def _current_commit_sha() -> str:
+    """Return the commit SHA of bob-context HEAD."""
+    return _git("rev-parse", BRANCH).stdout.strip()
+
+
+# ---------------------------------------------------------------------------
+# Core plumbing
+# ---------------------------------------------------------------------------
+
+def _read_blob(path: str) -> str:
+    """Read file content from bob-context:<path>. Returns empty string if absent."""
+    result = _git("show", f"{BRANCH}:{path}", check=False)
+    if result.returncode != 0:
+        return ""
+    return result.stdout
+
+
+def _write_blob(path: str, content: str) -> None:
+    """
+    Write `content` to `path` on the bob-context branch.
+
+    Flow:
+      1. hash-object -w  → blob SHA
+      2. mktree patches  → tree SHA  (rebuild full tree with new/updated entry)
+      3. commit-tree     → commit SHA
+      4. update-ref      → move branch pointer
+    """
+    # 1. Store the blob
+    blob_sha = _git("hash-object", "-w", "--stdin", input=content).stdout.strip()
+
+    # 2. Build the new tree
+    new_tree_sha = _make_tree_with(path, blob_sha)
+
+    # 3. Create commit
+    parent_sha = _current_commit_sha() if _branch_exists() else None
+    commit_sha = _commit_tree(new_tree_sha, f"write: {path}", parent_sha)
+
+    # 4. Advance the branch pointer
+    _git("update-ref", f"refs/heads/{BRANCH}", commit_sha)
+
+
+def _make_tree_with(file_path: str, blob_sha: str) -> str:
+    """
+    Return a new root tree SHA that is identical to the current bob-context tree
+    except that `file_path` now points to `blob_sha`.
+
+    Handles nested directories by rebuilding each intermediate tree bottom-up.
+    """
+    parts = PurePosixPath(file_path).parts  # e.g. ("chat", "alice.md")
+
+    # Collect existing entries for every tree level we'll need to rebuild.
+    # We work from the root down, gathering existing ls-tree lines per directory.
+    def existing_entries(tree_prefix: str) -> list:
+        """Return ls-tree lines for tree_prefix on bob-context, or [] if absent."""
+        ref = f"{BRANCH}:{tree_prefix}" if tree_prefix else BRANCH
+        if tree_prefix:
+            result = _git("ls-tree", f"{BRANCH}:{tree_prefix}", check=False)
+        else:
+            result = _git("ls-tree", BRANCH, check=False)
+        if result.returncode != 0:
+            return []
+        return [line for line in result.stdout.splitlines() if line.strip()]
+
+    def rebuild(parts_remaining: tuple, current_prefix: str) -> str:
+        """
+        Recursively rebuild the tree.
+        `parts_remaining` is the path components still to descend into.
+        `current_prefix` is the directory path from root (empty = root).
+        Returns the SHA of the rebuilt tree.
+        """
+        entries = existing_entries(current_prefix)
+
+        # Parse existing entries into a dict keyed by name
+        # Format: "<mode> <type> <sha>\t<name>"
+        entry_map = {}
+        for line in entries:
+            meta, name = line.split("\t", 1)
+            mode, obj_type, sha = meta.split()
+            entry_map[name] = (mode, obj_type, sha)
+
+        name = parts_remaining[0]
+
+        if len(parts_remaining) == 1:
+            # Leaf: insert/replace blob entry
+            entry_map[name] = ("100644", "blob", blob_sha)
+        else:
+            # Intermediate directory: recurse
+            sub_prefix = f"{current_prefix}/{name}" if current_prefix else name
+            sub_tree_sha = rebuild(parts_remaining[1:], sub_prefix)
+            entry_map[name] = ("040000", "tree", sub_tree_sha)
+
+        # Serialise back to mktree input
+        mktree_input = "\n".join(
+            f"{mode} {obj_type} {sha}\t{entry_name}"
+            for entry_name, (mode, obj_type, sha) in entry_map.items()
+        )
+        if mktree_input:
+            mktree_input += "\n"
+
+        return _git("mktree", input=mktree_input).stdout.strip()
+
+    return rebuild(parts, "")
+
+
+def _commit_tree(tree_sha: str, message: str, parent_sha: str = None) -> str:
+    """Create a new commit object and return its SHA."""
+    args = ["commit-tree", tree_sha, "-m", message]
+    if parent_sha:
+        args += ["-p", parent_sha]
+    return _git(*args).stdout.strip()
+
+
+def _list_tree(path: str) -> str:
+    """Return raw ls-tree output for `path` on bob-context."""
+    if path:
+        result = _git("ls-tree", f"{BRANCH}:{path}", check=False)
+    else:
+        result = _git("ls-tree", BRANCH, check=False)
+    if result.returncode != 0:
+        return ""
+    return result.stdout
+
+
+# ---------------------------------------------------------------------------
+# Commands
+# ---------------------------------------------------------------------------
+
+def cmd_init(args) -> None:
+    """Idempotently create the bob-context shadow branch."""
+    if _branch_exists():
+        print(f"Branch '{BRANCH}' already exists — nothing to do.")
+        return
+
+    # Create an empty tree
+    empty_tree_sha = _git("mktree", input="").stdout.strip()
+
+    # Create a README blob
+    readme_content = "# Bob Logbook — AI Workspace\n"
+    readme_sha = _git("hash-object", "-w", "--stdin", input=readme_content).stdout.strip()
+
+    # Build a tree containing the README
+    mktree_input = f"100644 blob {readme_sha}\tREADME.md\n"
+    tree_sha = _git("mktree", input=mktree_input).stdout.strip()
+
+    # Initial commit (no parent)
+    commit_sha = _commit_tree(tree_sha, "init: bob-context shadow branch")
+
+    # Create the branch ref
+    _git("update-ref", f"refs/heads/{BRANCH}", commit_sha)
+    print(f"Initialised shadow branch '{BRANCH}' (commit {commit_sha[:8]}).")
+
+
+def cmd_read(args) -> None:
+    """Print file content from bob-context to stdout."""
+    _check_path(args.path)
+    content = _read_blob(args.path)
+    if not content and not _branch_exists():
+        print(f"Error: branch '{BRANCH}' does not exist. Run `bob-log init` first.", file=sys.stderr)
+        sys.exit(1)
+    sys.stdout.write(content)
+
+
+def cmd_write(args) -> None:
+    """Create or overwrite a file on bob-context."""
+    _check_path(args.path)
+    if not _branch_exists():
+        print(f"Error: branch '{BRANCH}' does not exist. Run `bob-log init` first.", file=sys.stderr)
+        sys.exit(1)
+    _write_blob(args.path, args.content)
+
+
+def cmd_append(args) -> None:
+    """Append content to a file on bob-context (creates if absent)."""
+    _check_path(args.path)
+    if not _branch_exists():
+        print(f"Error: branch '{BRANCH}' does not exist. Run `bob-log init` first.", file=sys.stderr)
+        sys.exit(1)
+    existing = _read_blob(args.path)
+    _write_blob(args.path, existing + args.content)
+
+
+def cmd_commit(args) -> None:
+    """
+    Commit all pending shadow-branch changes with the given message.
+
+    Because _write_blob already creates a commit per write, this command
+    is a no-op in the typical single-write flow. It is provided for cases
+    where a caller has staged changes via lower-level calls and wants an
+    explicit named commit, or simply as a semantic marker.
+    """
+    if not _branch_exists():
+        print(f"Error: branch '{BRANCH}' does not exist. Run `bob-log init` first.", file=sys.stderr)
+        sys.exit(1)
+    # Re-commit the current tree with a new message (amend-style without touching history)
+    tree_sha = _current_tree_sha()
+    parent_sha = _current_commit_sha()
+    commit_sha = _commit_tree(tree_sha, args.message, parent_sha)
+    _git("update-ref", f"refs/heads/{BRANCH}", commit_sha)
+    print(f"Committed tree {tree_sha[:8]} as {commit_sha[:8]}: {args.message}")
+
+
+def cmd_ls(args) -> None:
+    """List files/directories on bob-context at the given path."""
+    if not _branch_exists():
+        print(f"Error: branch '{BRANCH}' does not exist. Run `bob-log init` first.", file=sys.stderr)
+        sys.exit(1)
+    path = args.path or ""
+    output = _list_tree(path)
+    if not output:
+        prefix = f"'{path}'" if path else "root"
+        print(f"(empty or path not found: {prefix})")
+        return
+    for line in output.splitlines():
+        # Format: "<mode> <type> <sha>\t<name>"
+        meta, name = line.split("\t", 1)
+        mode, obj_type, sha = meta.split()
+        marker = "/" if obj_type == "tree" else ""
+        print(f"{name}{marker}")
+
+
+def cmd_export(args) -> None:
+    """Copy a file from bob-context into the working tree at dest."""
+    _check_path(args.path)
+    if not _branch_exists():
+        print(f"Error: branch '{BRANCH}' does not exist. Run `bob-log init` first.", file=sys.stderr)
+        sys.exit(1)
+    content = _read_blob(args.path)
+    if content == "" :
+        # Distinguish "empty file" from "not found"
+        result = _git("cat-file", "-e", f"{BRANCH}:{args.path}", check=False)
+        if result.returncode != 0:
+            print(f"Error: '{args.path}' not found on branch '{BRANCH}'.", file=sys.stderr)
+            sys.exit(1)
+    dest = Path(args.dest)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(content, encoding="utf-8")
+    print(f"Exported '{args.path}' → '{dest}'")
+
+
+# ---------------------------------------------------------------------------
+# CLI wiring
+# ---------------------------------------------------------------------------
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="bob-log",
+        description="Bob Logbook — git shadow-branch AI workspace CLI",
+    )
+    sub = parser.add_subparsers(dest="command", metavar="command")
+    sub.required = True
+
+    # init
+    sub.add_parser("init", help="Idempotently create the bob-context shadow branch")
+
+    # read
+    p_read = sub.add_parser("read", help="Print file contents from bob-context")
+    p_read.add_argument("path", help="Relative path within bob-context")
+
+    # write
+    p_write = sub.add_parser("write", help="Create or overwrite a file on bob-context")
+    p_write.add_argument("path", help="Relative path within bob-context")
+    p_write.add_argument("content", help="File content to write")
+
+    # append
+    p_append = sub.add_parser("append", help="Append content to a file on bob-context")
+    p_append.add_argument("path", help="Relative path within bob-context")
+    p_append.add_argument("content", help="Content to append")
+
+    # commit
+    p_commit = sub.add_parser("commit", help="Create a named commit on bob-context")
+    p_commit.add_argument("message", help="Commit message")
+
+    # ls
+    p_ls = sub.add_parser("ls", help="List files on bob-context")
+    p_ls.add_argument("path", nargs="?", default="", help="Directory path (default: root)")
+
+    # export
+    p_export = sub.add_parser("export", help="Copy a file from bob-context to the working tree")
+    p_export.add_argument("path", help="Relative path within bob-context")
+    p_export.add_argument("dest", help="Destination path in the working tree")
+
+    return parser
+
+
+HANDLERS = {
+    "init": cmd_init,
+    "read": cmd_read,
+    "write": cmd_write,
+    "append": cmd_append,
+    "commit": cmd_commit,
+    "ls": cmd_ls,
+    "export": cmd_export,
+}
+
+
+def main() -> None:
+    parser = build_parser()
+    args = parser.parse_args()
+    try:
+        HANDLERS[args.command](args)
+    except (RuntimeError, ValueError) as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

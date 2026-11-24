@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# bob-log — thin wrapper so bob_log.py can be called without `python3`
+exec python3 "$(dirname "$(realpath "$0")")/bob_log.py" "$@"
