@@ -102,3 +102,30 @@ And it doesn't show bob's follow up questions, nor what he changed. Maybe we sho
 The 'md' files for the AI bots show up as they should I believe, but a history (since we have git already) of where changes were made and by which committer (and their AI agent) would be nice.
 
 How do you feel about this? We add more to the plan to get this looking like that?
+
+---
+**bob-response** | 2026-11-24T18:17:19Z | author: `jaminleod` | session: `8606d5cc441ea48f44da5e843fb64605`
+
+Good. I have enough to scope this cleanly. Here's what the plan looks like:
+
+---
+
+```mermaid
+flowchart LR
+    A[bob-log-hook.py\nwrites entry] --> B[chat/jaminleod.md\nchat/alexvu31.md]
+    B --> C[export-json\nmerges into all_entries]
+    C --> D[viewer.html\nparses unified format]
+    D --> E[Per-author views\n+ All Contributors view]
+```
+
+---
+
+**Three changes, clearly separated:**
+
+**1. Align the entry format** — the hook and the viewer's parser need to agree on one format. The viewer's `## Entry-NNN` format is the right one because it's parseable and readable as raw Markdown. The hook currently writes a different ad-hoc format. We fix the hook to write the `## Entry-NNN` format.
+
+**2. Render card bodies as Markdown** — in the viewer, change `escH(e.body)` to `renderMarkdown(e.body)` in `renderTimeline()`, and swap `white-space: pre-wrap` on `.card-body` for `md-view` class styling.
+
+**3. "All Contributors" view** — synthesised virtually in the viewer at load time by merging entries from all `chat/` files, sorting by timestamp. A new sidebar entry "💬 All Contributors" appears at the top of the chat group. No hook changes, no data duplication.
+
+Does this match what you had in mind, or do you want to adjust anything before I write this up as a plan file and implement it?
