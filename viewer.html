@@ -5,763 +5,614 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bob Logbook Viewer</title>
 <style>
-/* ── Reset ── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  /* ── Reset & base ─────────────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+               font-size: 14px; line-height: 1.6; color: #1f2328; background: #fff; }
 
-/* ── Base ── */
-body {
-  font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
-  font-size: 14px;
-  line-height: 1.6;
-  background: #f6f8fa;
-  color: #1f2328;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
+  /* ── Layout ───────────────────────────────────────────────────────── */
+  #app { display: flex; flex-direction: column; height: 100vh; }
 
-/* ── Header ── */
-.site-header {
-  background: #24292f;
-  color: #e6edf3;
-  padding: 0 20px;
-  height: 52px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
-  border-bottom: 1px solid #30363d;
-}
-.logo {
-  width: 28px; height: 28px;
-  background: #2f81f7;
-  border-radius: 6px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 14px; font-weight: 800; color: #fff; flex-shrink: 0;
-  letter-spacing: -0.5px;
-}
-.site-header h1 { font-size: 14px; font-weight: 600; color: #e6edf3; }
-.header-divider { width: 1px; height: 18px; background: #30363d; }
-.header-meta { font-size: 11px; color: #8b949e; }
-.header-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 16px; background: #24292f; color: #f0f6fc;
+    border-bottom: 1px solid #30363d; flex-shrink: 0;
+  }
+  header h1 { font-size: 15px; font-weight: 600; letter-spacing: .3px; }
+  header .meta { font-size: 12px; color: #8b949e; margin-left: auto; }
 
-.btn {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 5px 12px;
-  border: 1px solid #444d56;
-  border-radius: 6px;
-  background: transparent;
-  color: #c9d1d9;
-  font-size: 12px;
-  cursor: pointer;
-  font-family: inherit;
-  transition: background 0.1s, border-color 0.1s;
-}
-.btn:hover { background: #30363d; border-color: #6e7681; }
-.btn-primary { background: #2f81f7; border-color: #2f81f7; color: #fff; }
-.btn-primary:hover { background: #1a6ed1; border-color: #1a6ed1; }
+  #load-bar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px; background: #f7f8fa; border-bottom: 1px solid #e5e7eb; flex-shrink: 0;
+  }
+  #load-bar label {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; background: #3b82d4; color: #fff; border-radius: 5px;
+    cursor: pointer; font-size: 13px; font-weight: 500;
+  }
+  #load-bar label:hover { background: #2563c0; }
+  #file-input { display: none; }
+  #drop-zone {
+    flex: 1; border: 1.5px dashed #cbd5e1; border-radius: 5px;
+    padding: 7px 14px; color: #57606a; font-size: 13px;
+    transition: border-color .15s, background .15s;
+  }
+  #drop-zone.drag-over { border-color: #3b82d4; background: #eff6ff; color: #1d4ed8; }
+  #print-btn {
+    padding: 5px 12px; background: #fff; border: 1px solid #d0d7de;
+    border-radius: 5px; cursor: pointer; font-size: 13px;
+  }
+  #print-btn:hover { background: #f3f4f6; }
 
-/* ── Upload screen ── */
-#upload-screen {
-  flex: 1;
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-  gap: 32px;
-  overflow-y: auto;
-}
-.drop-area {
-  border: 2px dashed #d0d7de;
-  border-radius: 12px;
-  background: #fff;
-  padding: 52px 56px;
-  text-align: center;
-  max-width: 480px;
-  width: 100%;
-  transition: border-color 0.15s, background 0.15s;
-}
-.drop-area:hover, .drop-area.drag-over { border-color: #2f81f7; background: #f0f6ff; }
-.drop-area input[type="file"] { display: none; }
-.drop-icon { font-size: 36px; margin-bottom: 14px; }
-.drop-area h2 { font-size: 17px; font-weight: 600; margin-bottom: 7px; color: #1f2328; }
-.drop-area p { color: #57606a; font-size: 13px; margin-bottom: 18px; }
-.drop-area label {
-  display: inline-block; background: #2f81f7; color: #fff;
-  padding: 8px 22px; border-radius: 6px; cursor: pointer;
-  font-size: 13px; font-weight: 500; transition: background 0.1s;
-}
-.drop-area label:hover { background: #1a6ed1; }
-.drop-area .hint { margin-top: 16px; font-size: 11px; color: #8b949e; }
+  #workspace { display: flex; flex: 1; overflow: hidden; }
 
-.demo-btn-wrap { text-align: center; }
-.demo-btn-wrap p { font-size: 12px; color: #8b949e; margin-bottom: 8px; }
-.demo-btn-wrap button {
-  background: none; border: 1px solid #d0d7de; border-radius: 6px;
-  padding: 6px 18px; font-size: 12px; cursor: pointer; color: #57606a;
-  font-family: inherit; transition: border-color 0.1s, color 0.1s;
-}
-.demo-btn-wrap button:hover { border-color: #2f81f7; color: #2f81f7; }
+  /* ── Sidebar ──────────────────────────────────────────────────────── */
+  #sidebar {
+    width: 240px; min-width: 160px; border-right: 1px solid #e5e7eb;
+    overflow-y: auto; background: #f7f8fa; flex-shrink: 0;
+  }
+  .tree-folder {
+    padding: 4px 10px; font-size: 12px; font-weight: 600;
+    color: #57606a; text-transform: uppercase; letter-spacing: .4px;
+    border-bottom: 1px solid #e5e7eb; background: #f0f2f5;
+    user-select: none;
+  }
+  .tree-file {
+    display: flex; align-items: center; gap: 7px;
+    padding: 6px 14px; cursor: pointer; font-size: 13px;
+    color: #1f2328; border-bottom: 1px solid #f0f2f5;
+    transition: background .1s;
+  }
+  .tree-file:hover { background: #e9ecef; }
+  .tree-file.active { background: #dbeafe; color: #1d4ed8; font-weight: 500; }
+  .tree-file .icon { width: 14px; height: 14px; opacity: .7; }
 
-/* ── Workspace ── */
-#workspace {
-  flex: 1;
-  display: flex;
-  overflow: hidden;
-}
-.workspace-inner {
-  display: flex;
-  height: 100%;
-}
+  /* ── Content panel ────────────────────────────────────────────────── */
+  #content { flex: 1; overflow-y: auto; padding: 20px 28px; }
+  #content h2 { font-size: 16px; margin-bottom: 16px; color: #1f2328; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }
 
-/* ── Sidebar ── */
-.sidebar {
-  width: 230px;
-  flex-shrink: 0;
-  background: #fff;
-  border-right: 1px solid #d0d7de;
-  overflow-y: auto;
-  padding: 10px 0 16px;
-}
-.sidebar-label {
-  font-size: 10px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.08em;
-  color: #57606a; padding: 4px 14px 10px;
-}
-.tree-section { margin-bottom: 4px; }
-.tree-folder {
-  padding: 4px 14px 2px;
-  font-size: 11px; font-weight: 600;
-  color: #57606a; text-transform: uppercase; letter-spacing: 0.05em;
-  display: flex; align-items: center; gap: 5px;
-}
-.tree-folder::before { content: '▸'; font-size: 9px; }
-.tree-file {
-  padding: 5px 14px 5px 24px;
-  font-size: 12.5px; color: #1f2328;
-  cursor: pointer; border-radius: 6px;
-  margin: 1px 6px;
-  display: flex; align-items: center; gap: 7px;
-  transition: background 0.1s;
-  overflow: hidden;
-}
-.tree-file:hover { background: #f3f4f6; }
-.tree-file.active { background: #dbeafe; color: #1d4ed8; font-weight: 600; }
-.author-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  display: inline-block; flex-shrink: 0;
-}
-.tree-file-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.entry-pill {
-  margin-left: auto; flex-shrink: 0;
-  background: #f1f3f5; border-radius: 20px;
-  font-size: 10px; color: #57606a; padding: 1px 6px;
-  font-weight: 500;
-}
-.tree-file.active .entry-pill { background: #bfdbfe; color: #1d4ed8; }
+  /* ── Welcome screen ───────────────────────────────────────────────── */
+  #welcome { text-align: center; padding: 60px 20px; color: #57606a; }
+  #welcome h2 { font-size: 20px; color: #1f2328; margin-bottom: 10px; }
+  #welcome p { max-width: 480px; margin: 0 auto 8px; }
 
-/* ── Content panel ── */
-.content-panel {
-  flex: 1; overflow-y: auto;
-  padding: 28px 36px;
-  background: #f6f8fa;
-}
-.panel-header {
-  display: flex; align-items: baseline; gap: 10px;
-  margin-bottom: 22px; padding-bottom: 14px;
-  border-bottom: 1px solid #d0d7de;
-}
-.panel-header h2 { font-size: 15px; font-weight: 700; color: #1f2328; }
-.panel-header .entry-count {
-  font-size: 11px; color: #57606a;
-  background: #f1f3f5; border-radius: 20px; padding: 1px 8px;
-}
-.panel-header .branch-badge {
-  font-size: 10px; font-weight: 600; color: #7c5cd8;
-  background: #f5f0ff; border-radius: 4px; padding: 2px 7px;
-  border: 1px solid #ddd6fe; font-family: "SFMono-Regular", Consolas, monospace;
-}
+  /* ── Timeline cards (chat/ files) ────────────────────────────────── */
+  .timeline { display: flex; flex-direction: column; gap: 12px; }
+  .card {
+    border: 1px solid #e5e7eb; border-radius: 7px; overflow: hidden;
+    background: #fff;
+  }
+  .card-header {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+    padding: 8px 14px; background: #f7f8fa; border-bottom: 1px solid #e5e7eb;
+  }
+  .badge-author {
+    display: inline-block; padding: 2px 9px; border-radius: 12px;
+    font-size: 11px; font-weight: 600; color: #fff;
+  }
+  .badge-type {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: 11px; font-weight: 500;
+    background: #e5e7eb; color: #57606a;
+  }
+  .badge-type.user-prompt  { background: #dbeafe; color: #1d4ed8; }
+  .badge-type.bob-response { background: #dcfce7; color: #15803d; }
+  .card-meta { font-size: 11px; color: #57606a; margin-left: auto; }
+  .card-meta span { margin-left: 8px; }
+  .card-body { padding: 12px 14px; white-space: pre-wrap; font-size: 13px; line-height: 1.65; color: #1f2328; }
 
-/* ── Timeline ── */
-.timeline-wrap { position: relative; padding-left: 32px; }
-.timeline-line {
-  position: absolute; left: 10px; top: 14px; bottom: 14px;
-  width: 2px; background: #e5e7eb; border-radius: 2px;
-}
-.entry {
-  position: relative; background: #fff;
-  border: 1px solid #d0d7de; border-radius: 10px;
-  padding: 14px 18px; margin-bottom: 14px;
-  transition: box-shadow 0.15s;
-}
-.entry:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
-.entry-dot {
-  position: absolute; left: -24px; top: 17px;
-  width: 10px; height: 10px; border-radius: 50%;
-  background: var(--author-color, #57606a);
-  border: 2px solid #fff;
-  box-shadow: 0 0 0 2px var(--author-color, #57606a);
-}
+  /* ── Markdown renderer ────────────────────────────────────────────── */
+  .md-view h1 { font-size: 20px; margin: 20px 0 8px; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; }
+  .md-view h2 { font-size: 17px; margin: 18px 0 6px; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; }
+  .md-view h3 { font-size: 15px; margin: 14px 0 5px; }
+  .md-view h4 { font-size: 14px; margin: 12px 0 4px; }
+  .md-view p  { margin: 8px 0; }
+  .md-view ul, .md-view ol { margin: 8px 0 8px 22px; }
+  .md-view li { margin: 3px 0; }
+  .md-view code { background: #f0f2f5; padding: 1px 5px; border-radius: 3px; font-size: 12.5px; font-family: "SF Mono", Consolas, monospace; }
+  .md-view pre  { background: #f7f8fa; border: 1px solid #e5e7eb; border-radius: 6px; padding: 12px 14px; overflow-x: auto; margin: 10px 0; }
+  .md-view pre code { background: none; padding: 0; }
+  .md-view blockquote { border-left: 3px solid #cbd5e1; margin: 10px 0; padding: 4px 14px; color: #57606a; background: #f7f8fa; border-radius: 0 4px 4px 0; }
+  .md-view strong { font-weight: 600; }
+  .md-view em { font-style: italic; }
+  .md-view hr { border: none; border-top: 1px solid #e5e7eb; margin: 14px 0; }
+  .md-view a { color: #3b82d4; }
+  .md-view table { border-collapse: collapse; margin: 10px 0; font-size: 13px; }
+  .md-view th, .md-view td { border: 1px solid #e5e7eb; padding: 5px 10px; }
+  .md-view th { background: #f0f2f5; font-weight: 600; }
 
-/* ── Entry user-prompt: subtle left border tint ── */
-.entry.type-user-prompt { border-left: 3px solid #bfdbfe; }
-.entry.type-bob-response { border-left: 3px solid #bbf7d0; }
+  /* ── Author colour palette ─────────────────────────────────────────── */
+  /* colours assigned by hashing author string → one of 8 hues */
 
-.entry-header {
-  display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
-  margin-bottom: 10px;
-}
-.badge-author {
-  display: inline-flex; align-items: center;
-  padding: 2px 10px; border-radius: 20px;
-  font-size: 11px; font-weight: 700; color: #fff;
-  background: var(--author-color, #57606a);
-  letter-spacing: 0.01em;
-}
-.badge-type {
-  display: inline-block; padding: 2px 7px; border-radius: 4px;
-  font-size: 10px; font-weight: 600; text-transform: uppercase;
-  letter-spacing: 0.06em; border: 1px solid;
-}
-.type-user-prompt  { color: #1d4ed8; border-color: #bfdbfe; background: #eff6ff; }
-.type-bob-response { color: #15803d; border-color: #bbf7d0; background: #f0fdf4; }
-.type-stop         { color: #15803d; border-color: #bbf7d0; background: #f0fdf4; }
-.type-prompt       { color: #1d4ed8; border-color: #bfdbfe; background: #eff6ff; }
-.type-manual       { color: #b45309; border-color: #fde68a; background: #fefce8; }
-.type-decision     { color: #7c3aed; border-color: #ddd6fe; background: #f5f3ff; }
-.type-note         { color: #0369a1; border-color: #bae6fd; background: #f0f9ff; }
-.type-unknown      { color: #57606a; border-color: #d0d7de; background: #f7f8fa; }
-
-.entry-title  { font-size: 11.5px; color: #57606a; }
-.entry-ts     { font-size: 11px; color: #8b949e; margin-left: auto; white-space: nowrap; }
-.entry-session{ font-size: 10px; color: #8b949e; font-family: "SFMono-Regular", Consolas, monospace; }
-
-.entry-body {
-  font-size: 13px; line-height: 1.7; color: #24292f;
-  word-break: break-word;
-}
-.entry-body p { margin-bottom: 6px; }
-.entry-body p:last-child { margin-bottom: 0; }
-.entry-body code {
-  background: #f6f8fa; border: 1px solid #e5e7eb;
-  border-radius: 4px; padding: 1px 5px; font-size: 11.5px;
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-}
-.entry-body pre {
-  background: #f6f8fa; border: 1px solid #e5e7eb; border-radius: 6px;
-  padding: 10px 14px; overflow-x: auto; margin: 8px 0;
-}
-.entry-body pre code { background: none; border: none; padding: 0; font-size: 12px; }
-.entry-body strong { font-weight: 600; }
-.entry-body em { font-style: italic; }
-
-/* ── Markdown view ── */
-.md-view {
-  background: #fff; border: 1px solid #d0d7de;
-  border-radius: 10px; padding: 28px 32px;
-}
-.md-view h1 {
-  font-size: 22px; font-weight: 700;
-  border-bottom: 1px solid #e5e7eb; padding-bottom: 10px; margin-bottom: 16px;
-}
-.md-view h2 { font-size: 17px; font-weight: 600; margin: 20px 0 8px; padding-bottom: 4px; border-bottom: 1px solid #f0f0f0; }
-.md-view h3 { font-size: 14px; font-weight: 600; margin: 14px 0 6px; }
-.md-view p  { margin-bottom: 10px; }
-.md-view ul, .md-view ol { padding-left: 22px; margin-bottom: 10px; }
-.md-view li { margin-bottom: 4px; }
-.md-view code {
-  background: #f6f8fa; border: 1px solid #e5e7eb;
-  border-radius: 4px; padding: 1px 5px; font-size: 12px;
-  font-family: "SFMono-Regular", Consolas, monospace;
-}
-.md-view pre {
-  background: #f6f8fa; border: 1px solid #e5e7eb;
-  border-radius: 8px; padding: 14px 16px; overflow-x: auto; margin-bottom: 14px;
-}
-.md-view pre code { background: none; border: none; padding: 0; font-size: 12.5px; }
-.md-view strong { font-weight: 600; }
-.md-view em { font-style: italic; }
-.md-view hr { border: none; border-top: 1px solid #e5e7eb; margin: 16px 0; }
-.md-view blockquote {
-  border-left: 3px solid #d0d7de; padding-left: 16px;
-  color: #57606a; margin-bottom: 10px;
-}
-.md-view table { border-collapse: collapse; width: 100%; margin-bottom: 14px; font-size: 13px; }
-.md-view th { background: #f6f8fa; border: 1px solid #d0d7de; padding: 6px 12px; text-align: left; font-weight: 600; }
-.md-view td { border: 1px solid #d0d7de; padding: 6px 12px; }
-.md-view tr:nth-child(even) td { background: #fafafa; }
-
-/* ── Placeholder ── */
-.placeholder {
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  height: 100%; color: #57606a; text-align: center; padding: 60px 40px; gap: 8px;
-}
-.placeholder .pl-icon { font-size: 32px; margin-bottom: 6px; }
-.placeholder h3 { font-size: 15px; color: #1f2328; font-weight: 600; }
-.placeholder p  { font-size: 13px; max-width: 320px; }
-
-/* ── Footer ── */
-.site-footer {
-  text-align: center; font-size: 11px; color: #8b949e;
-  padding: 10px 16px; border-top: 1px solid #e5e7eb;
-  flex-shrink: 0; background: #fff;
-}
-
-/* ── Print ── */
-@media print {
-  body { height: auto; display: block; overflow: visible; }
-  .site-header { background: #24292f !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  #upload-screen { display: none !important; }
-  #workspace { display: block !important; overflow: visible; }
-  .workspace-inner { display: block; }
-  .sidebar { display: none; }
-  .content-panel { padding: 0; background: #fff; overflow: visible; }
-  .header-right { display: none; }
-  .site-footer { display: none; }
-  .entry { page-break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .badge-author, .badge-type, .entry { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-}
+  /* ── Print ────────────────────────────────────────────────────────── */
+  @media print {
+    #load-bar, #print-btn { display: none !important; }
+    header { background: #fff; color: #1f2328; border-bottom: 2px solid #1f2328; }
+    #workspace { display: block; overflow: visible; }
+    #sidebar { display: none; }
+    #content { padding: 0; overflow: visible; }
+    .card { break-inside: avoid; }
+  }
 </style>
 </head>
 <body>
+<div id="app">
 
-<!-- ── Header ── -->
-<header class="site-header">
-  <div class="logo">B</div>
-  <h1>Bob Logbook</h1>
-  <div class="header-divider"></div>
-  <span class="header-meta" id="export-meta">shadow branch viewer</span>
-  <div class="header-right">
-    <button class="btn" id="btn-reload" onclick="showUpload()" style="display:none">&#8617; Load another</button>
-    <button class="btn btn-primary" onclick="window.print()">&#128424; Print</button>
-  </div>
-</header>
+  <!-- ── Header ──────────────────────────────────────────────────────── -->
+  <header>
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <rect x="2" y="3" width="10" height="14" rx="2" fill="#58a6ff"/>
+      <rect x="8" y="1" width="10" height="14" rx="2" fill="#79c0ff" opacity=".7"/>
+      <rect x="5" y="7" width="4" height="1.5" rx=".5" fill="#fff"/>
+      <rect x="5" y="10" width="6" height="1.5" rx=".5" fill="#fff"/>
+      <rect x="5" y="13" width="5" height="1.5" rx=".5" fill="#fff"/>
+    </svg>
+    <h1>Bob Logbook Viewer</h1>
+    <span class="meta" id="header-meta"></span>
+  </header>
 
-<!-- ── Upload screen ── -->
-<div id="upload-screen">
-  <div class="drop-area" id="drop-area">
-    <div class="drop-icon">&#128194;</div>
-    <h2>Open a Bob Logbook export</h2>
-    <p>Drag &amp; drop <strong>bob-context-export.json</strong> here, or choose a file below.</p>
-    <label for="file-input">Choose file&hellip;</label>
-    <input type="file" id="file-input" accept=".json,application/json">
-    <p class="hint">Runs entirely in-browser &middot; no data leaves your machine</p>
+  <!-- ── Load bar ────────────────────────────────────────────────────── -->
+  <div id="load-bar">
+    <label>
+      📂 Choose file
+      <input type="file" id="file-input" accept=".json,application/json">
+    </label>
+    <div id="drop-zone">Drop <code>bob-context-export.json</code> here</div>
+    <button id="print-btn">🖨 Print</button>
   </div>
-  <div class="demo-btn-wrap">
-    <p>No file? Load the current project logbook.</p>
-    <button onclick="loadDemo()">&#9654; Preview Bob Logbook export</button>
-  </div>
-</div>
 
-<!-- ── Workspace ── -->
-<div id="workspace">
-  <div class="workspace-inner">
-    <nav class="sidebar" id="sidebar"></nav>
-    <main class="content-panel" id="content-panel">
-      <div class="placeholder">
-        <div class="pl-icon">&#128196;</div>
-        <h3>Select a file</h3>
-        <p>Choose a file from the sidebar to view it.</p>
+  <!-- ── Main workspace ──────────────────────────────────────────────── -->
+  <div id="workspace">
+    <nav id="sidebar"></nav>
+    <main id="content">
+      <div id="welcome">
+        <h2>Bob Logbook Viewer</h2>
+        <p>Load a <code>bob-context-export.json</code> file (produced by <code>bob-log export-json</code>)
+           to browse the AI workspace timeline.</p>
+        <p>Files under <code>chat/</code> are rendered as a colour-coded timeline.<br>
+           All other files are rendered as Markdown.</p>
+        <p style="margin-top:16px; font-size:12px; color:#8b949e;">
+          Or open <code>viewer.html?demo</code> to see a live sample.
+        </p>
       </div>
     </main>
   </div>
+
 </div>
 
-<footer class="site-footer">Made with IBM Bob &mdash; CIPS &times; IBM Virtual Hackathon 2026</footer>
-
 <script>
-// ─────────────────────────────────────────────────────────────────────────────
-// Author colour palette (hash → deterministic colour)
-// ─────────────────────────────────────────────────────────────────────────────
-const PALETTE = ['#2f81f7','#7c5cd8','#059669','#dc6c2c','#dc2626','#0891b2','#b45309','#c026d3'];
-const _cc = {};
-function authorColor(name) {
-  const k = (name || 'unknown').toLowerCase();
-  if (_cc[k]) return _cc[k];
+"use strict";
+
+// ── Author colour assignment ───────────────────────────────────────────────
+// Hash the author string to pick one of 8 distinct background colours.
+const AUTHOR_COLOURS = [
+  "#3b82d4", "#7c5cd8", "#db6c26", "#16a34a",
+  "#b91c1c", "#0891b2", "#9333ea", "#b45309"
+];
+function authorColour(name) {
   let h = 0;
-  for (let i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) >>> 0;
-  return (_cc[k] = PALETTE[h % PALETTE.length]);
+  for (let i = 0; i < name.length; i++) h = ((h << 5) - h) + name.charCodeAt(i);
+  return AUTHOR_COLOURS[Math.abs(h) % AUTHOR_COLOURS.length];
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HTML escape
-// ─────────────────────────────────────────────────────────────────────────────
-function esc(s) {
-  return String(s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Inline Markdown → HTML  (bold, italic, code, links)
-// ─────────────────────────────────────────────────────────────────────────────
-function inlineMd(s) {
-  return esc(s)
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*([^*]+)\*/g,     '<em>$1</em>')
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Block Markdown → HTML
-// ─────────────────────────────────────────────────────────────────────────────
-function mdToHtml(src) {
-  const lines = src.split('\n');
-  let html = '', inPre = false, inUl = false, inOl = false, inTable = false;
-
-  function closeBlocks() {
-    if (inUl) { html += '</ul>\n'; inUl = false; }
-    if (inOl) { html += '</ol>\n'; inOl = false; }
-    if (inTable) { html += '</tbody></table>\n'; inTable = false; }
+// ── Minimal Markdown renderer ─────────────────────────────────────────────
+function renderMarkdown(text) {
+  // Escape HTML first, then apply markdown patterns
+  function esc(s) {
+    return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
   }
 
-  for (let i = 0; i < lines.length; i++) {
-    const l = lines[i];
+  // Split into blocks separated by blank lines; handle fenced code blocks separately
+  const lines = text.split(/\r?\n/);
+  const out = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
     // Fenced code block
-    if (/^```/.test(l)) {
-      if (!inPre) { closeBlocks(); html += '<pre><code>'; inPre = true; }
-      else { html += '</code></pre>\n'; inPre = false; }
+    if (/^```/.test(line)) {
+      const lang = line.slice(3).trim();
+      i++;
+      const codeLines = [];
+      while (i < lines.length && !/^```/.test(lines[i])) {
+        codeLines.push(esc(lines[i]));
+        i++;
+      }
+      i++; // consume closing ```
+      out.push(`<pre><code>${codeLines.join("\n")}</code></pre>`);
       continue;
     }
-    if (inPre) { html += esc(l) + '\n'; continue; }
 
     // HR
-    if (/^---+$/.test(l.trim())) { closeBlocks(); html += '<hr>\n'; continue; }
+    if (/^---+$/.test(line.trim())) { out.push("<hr>"); i++; continue; }
 
     // Headings
-    const hm = l.match(/^(#{1,3})\s+(.*)/);
-    if (hm) { closeBlocks(); const n = hm[1].length; html += `<h${n}>${inlineMd(hm[2])}</h${n}>\n`; continue; }
+    const hm = line.match(/^(#{1,4})\s+(.*)/);
+    if (hm) {
+      const lvl = hm[1].length;
+      out.push(`<h${lvl}>${inline(hm[2])}</h${lvl}>`);
+      i++; continue;
+    }
 
     // Blockquote
-    if (/^>\s/.test(l)) { closeBlocks(); html += `<blockquote>${inlineMd(l.slice(2))}</blockquote>\n`; continue; }
-
-    // Table row (simple: | col | col |)
-    if (/^\|/.test(l)) {
-      const cells = l.split('|').slice(1,-1).map(c => c.trim());
-      if (!inTable) {
-        // Check if next line is separator
-        const sep = lines[i+1] || '';
-        if (/^\|[-| :]+\|/.test(sep)) {
-          closeBlocks();
-          html += '<table><thead><tr>';
-          cells.forEach(c => html += `<th>${inlineMd(c)}</th>`);
-          html += '</tr></thead><tbody>\n';
-          i++; // skip separator row
-          inTable = true;
-          continue;
-        }
+    if (/^>/.test(line)) {
+      const bqLines = [];
+      while (i < lines.length && /^>/.test(lines[i])) {
+        bqLines.push(inline(lines[i].replace(/^>\s?/, "")));
+        i++;
       }
-      if (inTable && !/^[-| :]+$/.test(cells[0])) {
-        html += '<tr>';
-        cells.forEach(c => html += `<td>${inlineMd(c)}</td>`);
-        html += '</tr>\n';
-        continue;
-      }
-    } else if (inTable) {
-      html += '</tbody></table>\n'; inTable = false;
+      out.push(`<blockquote>${bqLines.join("<br>")}</blockquote>`);
+      continue;
     }
 
-    // UL
-    const ulm = l.match(/^\s*[-*+]\s+(.*)/);
-    if (ulm) { if (!inUl) { if (inOl) {html+='</ol>\n';inOl=false;} html += '<ul>\n'; inUl = true; } html += `<li>${inlineMd(ulm[1])}</li>\n`; continue; }
-    // OL
-    const olm = l.match(/^\s*\d+\.\s+(.*)/);
-    if (olm) { if (!inOl) { if (inUl) {html+='</ul>\n';inUl=false;} html += '<ol>\n'; inOl = true; } html += `<li>${inlineMd(olm[1])}</li>\n`; continue; }
+    // Unordered list
+    if (/^[-*]\s/.test(line)) {
+      const liLines = [];
+      while (i < lines.length && /^[-*]\s/.test(lines[i])) {
+        liLines.push(`<li>${inline(lines[i].replace(/^[-*]\s/, ""))}</li>`);
+        i++;
+      }
+      out.push(`<ul>${liLines.join("")}</ul>`);
+      continue;
+    }
 
-    // Close lists on blank or non-list line
-    if (inUl || inOl) { closeBlocks(); }
+    // Ordered list
+    if (/^\d+\.\s/.test(line)) {
+      const liLines = [];
+      while (i < lines.length && /^\d+\.\s/.test(lines[i])) {
+        liLines.push(`<li>${inline(lines[i].replace(/^\d+\.\s/, ""))}</li>`);
+        i++;
+      }
+      out.push(`<ol>${liLines.join("")}</ol>`);
+      continue;
+    }
 
-    if (l.trim() === '') { html += '\n'; continue; }
-    html += `<p>${inlineMd(l)}</p>\n`;
+    // Table
+    if (/^\|/.test(line) && i + 1 < lines.length && /^\|[-|: ]+\|/.test(lines[i + 1])) {
+      const headers = line.split("|").slice(1, -1).map(c => `<th>${inline(c.trim())}</th>`).join("");
+      i += 2; // skip separator row
+      const rows = [];
+      while (i < lines.length && /^\|/.test(lines[i])) {
+        const cells = lines[i].split("|").slice(1, -1).map(c => `<td>${inline(c.trim())}</td>`).join("");
+        rows.push(`<tr>${cells}</tr>`);
+        i++;
+      }
+      out.push(`<table><thead><tr>${headers}</tr></thead><tbody>${rows.join("")}</tbody></table>`);
+      continue;
+    }
+
+    // Blank line
+    if (line.trim() === "") { i++; continue; }
+
+    // Paragraph — consume lines until a block-level marker or blank line.
+    // The inner loop must always make progress; the outer fallback i++ guarantees
+    // no infinite loop if a line somehow matches none of the above cases.
+    const paraLines = [];
+    while (i < lines.length) {
+      const pl = lines[i];
+      if (pl.trim() === "") break;
+      if (/^#{1,4}\s/.test(pl)) break;
+      if (/^>/.test(pl)) break;
+      if (/^[-*]\s/.test(pl)) break;
+      if (/^\d+\.\s/.test(pl)) break;
+      if (/^\|/.test(pl)) break;
+      if (/^```/.test(pl)) break;
+      if (/^---+$/.test(pl.trim())) break;
+      paraLines.push(inline(pl));
+      i++;
+    }
+    if (paraLines.length) {
+      out.push(`<p>${paraLines.join(" ")}</p>`);
+    } else {
+      // Safety net: nothing matched and nothing consumed — advance to avoid infinite loop
+      out.push(`<p>${inline(line)}</p>`);
+      i++;
+    }
   }
-  closeBlocks();
-  if (inPre) html += '</code></pre>\n';
-  return html;
+
+  return out.join("\n");
+
+  function inline(s) {
+    // Bold, italic, inline code, links
+    return esc(s)
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/__([^_]+)__/g, "<strong>$1</strong>")
+      .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+      .replace(/_([^_]+)_/g, "<em>$1</em>")
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+  }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Parse chat Markdown — two supported formats:
-//   Format A (hook-generated): ## Entry-NNN — Title\n**Field:** value\n\nbody\n---
-//   Format B (hook-generated alt): \n---\n**type** | ts | author: `x` | session: `y`\n\nbody
-// ─────────────────────────────────────────────────────────────────────────────
-function parseChatEntries(md) {
-  // Format A: sections split on ## headings
-  if (/^##\s/m.test(md)) {
-    const entries = [];
-    const sections = md.split(/^(?=##\s)/m).filter(s => s.trim());
-    for (const sec of sections) {
-      const lines = sec.split('\n');
-      if (!/^##\s/.test(lines[0])) continue;
-      const title = lines[0].replace(/^##\s+/, '').trim();
-      const meta = {};
-      let bodyStart = 1;
-      for (let i = 1; i < lines.length; i++) {
-        const m = lines[i].match(/^\*\*(\w[\w-]*):\*\*\s*(.+)/);
-        if (m) { meta[m[1].toLowerCase()] = m[2].trim(); bodyStart = i + 1; }
-        else if (lines[i].trim() === '' && i <= 8) continue;
-        else if (lines[i].trim() !== '') { bodyStart = i; break; }
-      }
-      const body = lines.slice(bodyStart).join('\n').replace(/\n---\s*$/, '').trim();
-      entries.push({
-        title,
-        timestamp: meta['timestamp'] || meta['date'] || '',
-        author:    meta['author'] || 'unknown',
-        type:      (meta['type'] || 'unknown').toLowerCase().replace(/\s+/g,'-'),
-        session:   meta['session'] || '',
-        body,
-      });
-    }
-    return entries;
-  }
-
-  // Format B: hook-style  ---\n**type** | ts | author: `x` | session: `y`
+// ── Chat timeline parser ───────────────────────────────────────────────────
+// Parses entries that match the pattern written by bob-log-hook.py:
+//   ## Entry-NNN - <event>
+//   **Timestamp:** <iso>
+//   **Author:** <name>
+//   **Type:** <type>
+//   **Session:** <id>
+//   <blank>
+//   <body>
+//   ---
+function parseTimeline(text) {
   const entries = [];
-  const blocks = md.split(/\n---\n/).filter(s => s.trim());
-  for (const blk of blocks) {
-    const lines = blk.split('\n').filter(l => l.trim());
-    if (!lines.length) continue;
-    const header = lines[0];
-    const hm = header.match(/\*\*([\w-]+)\*\*\s*\|\s*([\dT:Z-]+)\s*\|\s*author:\s*`([^`]+)`(?:\s*\|\s*session:\s*`([^`]+)`)?/);
-    if (hm) {
-      const body = lines.slice(1).join('\n').trim();
-      entries.push({ title: '', timestamp: hm[2], author: hm[3], type: hm[1].toLowerCase(), session: hm[4]||'', body });
+  // Split on ## Entry- blocks
+  const blocks = text.split(/^(?=## Entry-)/m).filter(b => b.trim());
+  for (const block of blocks) {
+    const lines = block.split(/\r?\n/);
+    const entry = { title: "", timestamp: "", author: "", type: "", session: "", body: "" };
+
+    // Header line: ## Entry-NNN - EventName
+    const titleLine = lines[0] || "";
+    const titleMatch = titleLine.match(/^##\s+(.+)/);
+    entry.title = titleMatch ? titleMatch[1].trim() : titleLine.trim();
+
+    // Parse **Key:** Value lines
+    let bodyStart = 1;
+    for (let i = 1; i < lines.length; i++) {
+      const kv = lines[i].match(/^\*\*([^*]+)\*\*:\s*(.*)/);
+      if (kv) {
+        const key = kv[1].toLowerCase();
+        const val = kv[2].trim();
+        if (key === "timestamp") entry.timestamp = val;
+        else if (key === "author")    entry.author    = val;
+        else if (key === "type")      entry.type      = val;
+        else if (key === "session")   entry.session   = val;
+        bodyStart = i + 1;
+      } else if (lines[i].trim() === "") {
+        bodyStart = i + 1;
+        break;
+      } else {
+        break;
+      }
     }
+
+    // Body: everything after metadata up to ---
+    const bodyLines = lines.slice(bodyStart).join("\n").replace(/\n---\s*$/, "").trim();
+    entry.body = bodyLines;
+    entries.push(entry);
   }
   return entries;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Render timeline (chat/ files)
-// ─────────────────────────────────────────────────────────────────────────────
-const KNOWN_TYPES = new Set(['user-prompt','bob-response','stop','prompt','manual','decision','note']);
-
-function renderTimeline(entries, filePath) {
+// ── Render functions ──────────────────────────────────────────────────────
+function renderTimeline(path, content) {
+  const entries = parseTimeline(content);
   if (!entries.length) {
-    return `<div class="placeholder"><div class="pl-icon">&#128203;</div><h3>No entries</h3><p>No recognisable entries in <code>${esc(filePath)}</code>.</p></div>`;
+    return `<h2>${escH(path)}</h2><p style="color:#57606a">No entries found.</p>`;
   }
-  const author = entries.find(e => e.author !== 'unknown')?.author || filePath.split('/').pop().replace('.md','');
-  const color  = authorColor(author);
-
-  let html = `<div class="panel-header">
-    <h2>${esc(filePath)}</h2>
-    <span class="branch-badge">bob-context</span>
-    <span class="entry-count">${entries.length} entr${entries.length === 1 ? 'y' : 'ies'}</span>
+  const cards = entries.map(e => {
+    const colour = authorColour(e.author || "unknown");
+    const typeCls = e.type === "user-prompt" ? "user-prompt"
+                  : e.type === "bob-response" ? "bob-response" : "";
+    const typeLabel = e.type || "event";
+    const ts = e.timestamp ? formatTime(e.timestamp) : "";
+    const session = e.session ? `<span>session: <code>${escH(e.session)}</code></span>` : "";
+    return `
+<div class="card">
+  <div class="card-header">
+    <span class="badge-author" style="background:${colour}">${escH(e.author || "unknown")}</span>
+    <span class="badge-type ${typeCls}">${escH(typeLabel)}</span>
+    <span class="card-meta"><span>${escH(ts)}</span>${session}</span>
   </div>
-  <div class="timeline-wrap"><div class="timeline-line"></div>`;
-
-  for (const e of entries) {
-    const eColor   = authorColor(e.author);
-    const typeKey  = e.type.replace(/[^a-z-]/g,'');
-    const typeClass = KNOWN_TYPES.has(typeKey) ? 'type-' + typeKey : 'type-unknown';
-    const displayType = e.type || 'unknown';
-    // Format timestamp nicely if ISO
-    let ts = e.timestamp;
-    if (ts) {
-      try {
-        const d = new Date(ts);
-        if (!isNaN(d)) ts = d.toLocaleString('en-CA', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', hour12:false });
-      } catch(_) {}
-    }
-    // Render body — treat as block Markdown
-    const bodyHtml = e.body ? mdToHtml(e.body) : '';
-
-    html += `<div class="entry ${typeClass}" style="--author-color:${eColor}">
-      <div class="entry-dot"></div>
-      <div class="entry-header">
-        <span class="badge-author" style="background:${eColor}">${esc(e.author)}</span>
-        <span class="badge-type ${typeClass}">${esc(displayType)}</span>
-        ${e.title ? `<span class="entry-title">${esc(e.title)}</span>` : ''}
-        ${e.session ? `<span class="entry-session">&#35;${esc(e.session)}</span>` : ''}
-        ${ts ? `<span class="entry-ts">${esc(ts)}</span>` : ''}
-      </div>
-      ${bodyHtml ? `<div class="entry-body">${bodyHtml}</div>` : ''}
-    </div>`;
-  }
-  html += '</div>';
-  return html;
+  <div class="card-body">${escH(e.body)}</div>
+</div>`;
+  });
+  return `<h2>${escH(path)}</h2><div class="timeline">${cards.join("")}</div>`;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Render plain Markdown
-// ─────────────────────────────────────────────────────────────────────────────
-function renderMarkdown(content, filePath) {
-  return `<div class="panel-header">
-    <h2>${esc(filePath)}</h2>
-    <span class="branch-badge">bob-context</span>
-  </div>
-  <div class="md-view">${mdToHtml(content)}</div>`;
+function renderMd(path, content) {
+  return `<h2>${escH(path)}</h2><div class="md-view">${renderMarkdown(content)}</div>`;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Sidebar
-// ─────────────────────────────────────────────────────────────────────────────
-let _files = {}, _counts = {};
+function escH(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
 
-function buildSidebar(files) {
-  const folders = {};
+function formatTime(iso) {
+  try {
+    const d = new Date(iso);
+    if (isNaN(d)) return iso;
+    return d.toLocaleString(undefined, {
+      year:"numeric", month:"short", day:"numeric",
+      hour:"2-digit", minute:"2-digit"
+    });
+  } catch { return iso; }
+}
+
+// ── File tree ─────────────────────────────────────────────────────────────
+function buildTree(files) {
+  // Group by folder prefix
+  const groups = {};
   for (const path of Object.keys(files)) {
-    const slash = path.indexOf('/');
-    const folder = slash !== -1 ? path.slice(0, slash) : '';
-    if (!folders[folder]) folders[folder] = [];
-    folders[folder].push(path);
+    const slash = path.indexOf("/");
+    const folder = slash === -1 ? "" : path.slice(0, slash);
+    if (!groups[folder]) groups[folder] = [];
+    groups[folder].push(path);
   }
 
-  // Pre-compute entry counts for chat files
-  _counts = {};
-  for (const [path, content] of Object.entries(files)) {
-    if (path.startsWith('chat/')) _counts[path] = parseChatEntries(content).length;
-  }
-  // Combined count = sum of all chat entries
-  const combinedCount = Object.values(_counts).reduce((s, n) => s + n, 0);
+  const sidebar = document.getElementById("sidebar");
+  sidebar.innerHTML = "";
 
-  let html = '<div class="sidebar-label">bob-context branch</div>';
-
-  // ── Combined chat entry (always first) ──
-  html += `<div class="tree-section">
-    <div class="tree-folder">combined</div>
-    <div class="tree-file${_activeFile === COMBINED_PATH ? ' active' : ''}" data-path="${esc(COMBINED_PATH)}" onclick='openFile(${JSON.stringify(COMBINED_PATH)})'>
-      <span class="author-dot" style="background:linear-gradient(135deg,#2f81f7 50%,#7c5cd8 50%)"></span>
-      <span class="tree-file-name">all authors</span>
-      <span class="entry-pill">${combinedCount}</span>
-    </div>
-  </div>`;
-
-  for (const [folder, paths] of Object.entries(folders)) {
-    if (folder) html += `<div class="tree-section"><div class="tree-folder">${esc(folder)}</div>`;
-    for (const p of paths) {
-      const fname  = p.split('/').pop();
-      const isChat = p.startsWith('chat/');
-      const color  = isChat ? authorColor(fname.replace(/\.md$/,'')) : '#57606a';
-      const count  = _counts[p];
-      html += `<div class="tree-file${_activeFile === p ? ' active' : ''}" data-path="${esc(p)}" onclick='openFile(${JSON.stringify(p)})'>
-        <span class="author-dot" style="background:${color}"></span>
-        <span class="tree-file-name">${esc(fname)}</span>
-        ${count !== undefined ? `<span class="entry-pill">${count}</span>` : ''}
-      </div>`;
+  for (const [folder, paths] of Object.entries(groups)) {
+    if (folder) {
+      const h = document.createElement("div");
+      h.className = "tree-folder";
+      h.textContent = "📁 " + folder;
+      sidebar.appendChild(h);
     }
-    if (folder) html += '</div>';
+    for (const path of paths) {
+      const item = document.createElement("div");
+      item.className = "tree-file";
+      const isChat = path.startsWith("chat/");
+      item.innerHTML = `<span class="icon">${isChat ? "💬" : "📄"}</span><span>${escH(path.slice(folder ? folder.length + 1 : 0))}</span>`;
+      item.dataset.path = path;
+      item.addEventListener("click", () => selectFile(path));
+      sidebar.appendChild(item);
+    }
   }
-  document.getElementById('sidebar').innerHTML = html;
 }
 
-let _activeFile = null;
+// ── State ─────────────────────────────────────────────────────────────────
+let _files = null;
 
-function openFile(path) {
-  _activeFile = path;
-  // Rebuild sidebar to reflect new active state
-  buildSidebar(_files);
-  const panel = document.getElementById('content-panel');
-  panel.scrollTop = 0;
-  if (path === COMBINED_PATH) {
-    const entries = buildCombinedEntries(_files);
-    panel.innerHTML = renderTimeline(entries, 'All authors (interleaved by time)');
-  } else if (path.startsWith('chat/')) {
-    panel.innerHTML = renderTimeline(parseChatEntries(_files[path] || ''), path);
+function selectFile(path) {
+  if (!_files) return;
+  // Update active state
+  document.querySelectorAll(".tree-file").forEach(el => el.classList.toggle("active", el.dataset.path === path));
+  const content = _files[path] || "";
+  const panel = document.getElementById("content");
+  if (path.startsWith("chat/")) {
+    panel.innerHTML = renderTimeline(path, content);
   } else {
-    panel.innerHTML = renderMarkdown(_files[path] || '', path);
+    panel.innerHTML = renderMd(path, content);
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Build the synthetic combined chat — merges all chat/ files sorted by timestamp
-// ─────────────────────────────────────────────────────────────────────────────
-const COMBINED_PATH = 'chat/~combined';
-
-function buildCombinedEntries(files) {
-  const all = [];
-  for (const [path, content] of Object.entries(files)) {
-    if (!path.startsWith('chat/') || path === COMBINED_PATH) continue;
-    for (const e of parseChatEntries(content)) all.push(e);
+function loadExport(data) {
+  if (!data || !data.files) {
+    alert("Invalid export file — expected { files: { ... } }");
+    return;
   }
-  // Sort by ISO timestamp string (lexicographic works for ISO 8601)
-  all.sort((a, b) => (a.timestamp || '').localeCompare(b.timestamp || ''));
-  return all;
+  _files = data.files;
+  buildTree(_files);
+
+  // Update header meta
+  const meta = document.getElementById("header-meta");
+  const count = Object.keys(_files).length;
+  const ts = data.exported_at ? " · exported " + formatTime(data.exported_at) : "";
+  meta.textContent = `${count} file${count !== 1 ? "s" : ""} · branch: ${data.branch || "bob-context"}${ts}`;
+
+  // Auto-select first chat file, or first file
+  const paths = Object.keys(_files);
+  const first = paths.find(p => p.startsWith("chat/")) || paths[0];
+  if (first) selectFile(first);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Load export JSON
-// ─────────────────────────────────────────────────────────────────────────────
-function loadExport(json, label) {
-  _files = json.files || {};
-  if (!Object.keys(_files).length) { alert('No files found in this export.'); return; }
-
-  const metaEl = document.getElementById('export-meta');
-  if (json.exported_at) {
-    try {
-      const d = new Date(json.exported_at);
-      metaEl.textContent = 'exported ' + d.toLocaleString('en-CA', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', hour12:false });
-    } catch(_) { metaEl.textContent = label; }
-  } else { metaEl.textContent = label; }
-
-  buildSidebar(_files);
-  showWorkspace();
-
-  // Auto-open combined view
-  openFile(COMBINED_PATH);
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Screen transitions
-// ─────────────────────────────────────────────────────────────────────────────
-function showUpload() {
-  document.getElementById('upload-screen').style.display = 'flex';
-  document.getElementById('workspace').style.display     = 'none';
-  document.getElementById('btn-reload').style.display    = 'none';
-}
-function showWorkspace() {
-  document.getElementById('upload-screen').style.display = 'none';
-  document.getElementById('workspace').style.display     = 'flex';
-  document.getElementById('btn-reload').style.display    = '';
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// File picker
-// ─────────────────────────────────────────────────────────────────────────────
-document.getElementById('file-input').addEventListener('change', function(e) {
-  const file = e.target.files[0]; if (!file) return;
-  const r = new FileReader();
-  r.onload = ev => {
-    try { loadExport(JSON.parse(ev.target.result), file.name); }
-    catch(err) { alert('Could not parse file. Make sure it is a valid bob-context-export.json.\n\n' + err.message); }
+// ── File input ────────────────────────────────────────────────────────────
+document.getElementById("file-input").addEventListener("change", function() {
+  const file = this.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try { loadExport(JSON.parse(e.target.result)); }
+    catch(err) { alert("Could not parse JSON: " + err.message); }
   };
-  r.readAsText(file);
+  reader.readAsText(file);
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Drag and drop
-// ─────────────────────────────────────────────────────────────────────────────
-const dropArea = document.getElementById('drop-area');
-dropArea.addEventListener('dragover',  e => { e.preventDefault(); dropArea.classList.add('drag-over'); });
-dropArea.addEventListener('dragleave', ()  => dropArea.classList.remove('drag-over'));
-dropArea.addEventListener('drop', e => {
-  e.preventDefault(); dropArea.classList.remove('drag-over');
-  const file = e.dataTransfer.files[0]; if (!file) return;
-  const r = new FileReader();
-  r.onload = ev => {
-    try { loadExport(JSON.parse(ev.target.result), file.name); }
-    catch(err) { alert('Invalid JSON export.\n\n' + err.message); }
+// ── Drag and drop ─────────────────────────────────────────────────────────
+const dz = document.getElementById("drop-zone");
+dz.addEventListener("dragover", e => { e.preventDefault(); dz.classList.add("drag-over"); });
+dz.addEventListener("dragleave", () => dz.classList.remove("drag-over"));
+dz.addEventListener("drop", e => {
+  e.preventDefault();
+  dz.classList.remove("drag-over");
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try { loadExport(JSON.parse(ev.target.result)); }
+    catch(err) { alert("Could not parse JSON: " + err.message); }
   };
-  r.readAsText(file);
-});
-dropArea.addEventListener('click', e => {
-  if (e.target.tagName !== 'LABEL' && e.target.tagName !== 'BUTTON')
-    document.getElementById('file-input').click();
+  reader.readAsText(file);
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Embedded export — generated by: python3 bob_log.py export-json
-// ─────────────────────────────────────────────────────────────────────────────
-const DEMO_DATA = JSON.parse("{\"files\": {\"README.md\": \"# Bob Logbook - AI Workspace\n\nThis is the bob-context shadow branch for the Bob Logbook project.\nFiles here are managed by bob_log.py and auto-captured by Bob lifecycle hooks.\n\", \"chat/alexvu31.md\": \"## Entry-001 - UserPromptSubmit\n**Timestamp:** 2026-11-24T14:10:22Z\n**Author:** alexvu31\n**Type:** user-prompt\n**Session:** def-001\n\nExecute sub-task 4 and sub-task 5\n\n---\n\n## Entry-002 - Stop\n**Timestamp:** 2026-11-24T14:11:05Z\n**Author:** alexvu31\n**Type:** bob-response\n**Session:** def-001\n\nBuilt viewer.html - single-file HTML timeline viewer with file picker, drag-and-drop, author colour badges, event-type tags, and print-friendly CSS. Also wrote test_bob_log.py and README.md.\n\n---\n\n## Entry-003 - UserPromptSubmit\n**Timestamp:** 2026-11-24T16:53:47Z\n**Author:** alexvu31\n**Type:** user-prompt\n**Session:** def-002\n\nCan you build the pdf right now or no?\n\n---\n\n## Entry-004 - Stop\n**Timestamp:** 2026-11-24T16:55:00Z\n**Author:** alexvu31\n**Type:** bob-response\n**Session:** def-002\n\nBuilt submission.html - a 4-page print-ready PDF submission. Page 1: problem, user story, solution overview, team. Page 2: architecture diagram + 7-panel Bob usage evidence gallery. Page 3: code walkthrough. Page 4: test suite, how-to-run, scoring, reflection.\n\n---\n\n## Entry-005 - UserPromptSubmit\n**Timestamp:** 2026-11-24T17:08:05Z\n**Author:** alexvu31\n**Type:** user-prompt\n**Session:** def-003\n\nCan you add this to the pdf too? [planning screenshot: Python-over-shell decision, full command set, hook auto-behaviour, viewer role, stretch skill]\n\n---\n\n## Entry-006 - Stop\n**Timestamp:** 2026-11-24T17:09:30Z\n**Author:** alexvu31\n**Type:** bob-response\n**Session:** def-003\n\nAdded panel 7 to Page 2 of submission.html - full-width evidence panel showing Python-over-shell rationale, revised command set, auto-hook behaviour, viewer role, and stretch skill goal.\n\n---\n\n## Entry-007 - UserPromptSubmit\n**Timestamp:** 2026-11-24T17:10:55Z\n**Author:** alexvu31\n**Type:** user-prompt\n**Session:** def-004\n\nNow finish the sub tasks after pulling from jaminleod\n\n---\n\n## Entry-008 - Stop\n**Timestamp:** 2026-11-24T17:20:26Z\n**Author:** alexvu31\n**Type:** bob-response\n**Session:** def-004\n\nCompleted all remaining sub-tasks (4-6) and stretch goal.\n\n- test_bob_log.py: 13 Python unittest tests, all 13/13 pass\n- bob_log.py fix: Windows core.autocrlf bug resolved with binary subprocess I/O\n- README.md: full rewrite to match Python CLI\n- Stretch: .bob/skills/bob-log/SKILL.md written and committed\n\nAll changes committed as 6a44ee4.\n\n---\n\n## Entry-009 - UserPromptSubmit\n**Timestamp:** 2026-11-24T17:28:33Z\n**Author:** alexvu31\n**Type:** user-prompt\n**Session:** def-005\n\nRedo sub task 4 - viewer.html rewrite\n\n---\n\n## Entry-010 - Stop\n**Timestamp:** 2026-11-24T17:33:06Z\n**Author:** alexvu31\n**Type:** bob-response\n**Session:** def-005\n\nRewrote viewer.html from scratch. Auto-loads export on open (no upload screen). Fixed display:flex/none CSS bug so workspace renders immediately. Fixed sidebar onclick broken by JSON.stringify double-quotes inside HTML attribute. Sidebar shows entry count pills and author colour dots.\n\n---\n\n## Entry-011 - UserPromptSubmit\n**Timestamp:** 2026-11-24T17:38:14Z\n**Author:** alexvu31\n**Type:** user-prompt\n**Session:** def-006\n\nRegenerate the export file - README was not reading properly\n\n---\n\n## Entry-012 - Stop\n**Timestamp:** 2026-11-24T17:38:30Z\n**Author:** alexvu31\n**Type:** bob-response\n**Session:** def-006\n\nFixed encoding issues: em dashes and CRLF line endings in shadow branch files caused UnicodeDecodeError during export. Rewrote all shadow branch files via Python directly (bypassing PowerShell encoding). Regenerated clean bob-context-export.json. Updated DEMO_DATA in viewer.html to match.\n\n---\n\", \"chat/jaminleod.md\": \"## Entry-001 - UserPromptSubmit\n**Timestamp:** 2026-11-24T11:03:12Z\n**Author:** jaminleod\n**Type:** user-prompt\n**Session:** abc-001\n\nLet's plan the Bob Logbook project. What's the best architecture?\n\n---\n\n## Entry-002 - Stop\n**Timestamp:** 2026-11-24T11:03:58Z\n**Author:** jaminleod\n**Type:** bob-response\n**Session:** abc-001\n\nI recommend a shadow branch approach using git orphan branches. The key insight is that git checkout --orphan bob-context creates a branch with no shared history, so your log entries can never cause merge conflicts on main.\n\n---\n\n## Entry-003 - UserPromptSubmit\n**Timestamp:** 2026-11-24T12:30:05Z\n**Author:** jaminleod\n**Type:** user-prompt\n**Session:** abc-002\n\nWrite the bob_log.py init subcommand using git plumbing only - no branch switching.\n\n---\n\n## Entry-004 - Stop\n**Timestamp:** 2026-11-24T12:31:44Z\n**Author:** jaminleod\n**Type:** bob-response\n**Session:** abc-002\n\nBuilt bob_log.py with init, read, write, append, commit, ls, and export subcommands. All operations use git plumbing (hash-object, mktree, commit-tree, update-ref) so the working tree is never touched.\n\n---\n\", \"decisions.md\": \"# Decisions\n\n## 2026-11-24 - Idea Selection\n**Author:** jaminleod\n\nChosen idea: **Bob Logbook** - a git shadow-branch workspace that lets IBM Bob and developers read, write, and commit arbitrary files on a dedicated branch without touching the working tree.\n\n## 2026-11-24 - Tech Stack\n**Author:** jaminleod\n\nPython 3 stdlib only. No pip installs. jq not needed - json.load(sys.stdin) handles hook payloads natively.\n\n## 2026-11-24 - Export Format\n**Author:** jaminleod\n\nAgreed JSON format: { exported_at, branch, files: { path: content } }\n\n## 2026-11-24 - Windows Compatibility Fix\n**Author:** alexvu31\n\nAll _git() calls in bob_log.py now use binary subprocess I/O (input=raw_bytes, no text=True) plus -c core.autocrlf=false. Prevents Windows git from CRLF-converting mktree stdin, which was corrupting stored filenames with a trailing backslash-r. Fix is a no-op on Linux/macOS.\n\n## 2026-11-24 - All Sub-Tasks Complete\n**Author:** alexvu31\n\nSub-tasks 1-6 all marked done. Stretch Bob skill (bob-log) written and committed. Project is submission-ready.\n\n## 2026-11-24 - Viewer Fixed\n**Author:** alexvu31\n\nviewer.html now auto-loads export on open. Fixed CSS display:none/flex bug and broken sidebar onclick (JSON.stringify quotes inside HTML attribute).\n\"}, \"exported_at\": \"2026-11-24T17:40:43Z\", \"branch\": \"bob-context\"}");
+// ── Print ──────────────────────────────────────────────────────────────────
+document.getElementById("print-btn").addEventListener("click", () => window.print());
 
-function loadDemo() { loadExport(DEMO_DATA, 'bob-context-export.json'); }
-
-// Always pre-load the current export on startup.
-// The user can still load a different file via "Load another" → file picker / drag-and-drop.
-loadDemo();
+// ── Demo mode (viewer.html?demo) ──────────────────────────────────────────
+if (location.search.includes("demo")) {
+  loadExport({
+    exported_at: new Date().toISOString(),
+    branch: "bob-context",
+    files: {
+      "chat/jaminleod.md": [
+        "## Entry-001 - UserPromptSubmit",
+        "**Timestamp:** 2026-11-24T11:03:12Z",
+        "**Author:** jaminleod",
+        "**Type:** user-prompt",
+        "**Session:** abc-001",
+        "",
+        "Let's plan the Bob Logbook project. What's the best architecture?",
+        "",
+        "---",
+        "",
+        "## Entry-002 - Stop",
+        "**Timestamp:** 2026-11-24T11:03:58Z",
+        "**Author:** jaminleod",
+        "**Type:** bob-response",
+        "**Session:** abc-001",
+        "",
+        "I recommend a shadow branch approach using git orphan branches. The key insight is that `git checkout --orphan bob-context` creates a branch with no shared history, so your log entries can never cause merge conflicts on main.",
+        "",
+        "---",
+        "",
+        "## Entry-003 - UserPromptSubmit",
+        "**Timestamp:** 2026-11-24T12:30:05Z",
+        "**Author:** jaminleod",
+        "**Type:** user-prompt",
+        "**Session:** abc-002",
+        "",
+        "Write the bob_log.py init subcommand using git plumbing only — no branch switching.",
+        "",
+        "---",
+        "",
+        "## Entry-004 - Stop",
+        "**Timestamp:** 2026-11-24T12:31:44Z",
+        "**Author:** jaminleod",
+        "**Type:** bob-response",
+        "**Session:** abc-002",
+        "",
+        "Built bob_log.py with init, read, write, append, commit, ls, and export subcommands. All operations use git plumbing (hash-object, mktree, commit-tree, update-ref) so the working tree is never touched.",
+        "",
+        "---"
+      ].join("\n"),
+      "chat/alexvu31.md": [
+        "## Entry-001 - UserPromptSubmit",
+        "**Timestamp:** 2026-11-24T14:10:22Z",
+        "**Author:** alexvu31",
+        "**Type:** user-prompt",
+        "**Session:** def-001",
+        "",
+        "Execute sub-task 4 — build viewer.html.",
+        "",
+        "---",
+        "",
+        "## Entry-002 - Stop",
+        "**Timestamp:** 2026-11-24T14:11:05Z",
+        "**Author:** alexvu31",
+        "**Type:** bob-response",
+        "**Session:** def-001",
+        "",
+        "Built viewer.html — single-file HTML timeline viewer with file picker, drag-and-drop, author colour badges, event-type tags, and print-friendly CSS.",
+        "",
+        "---"
+      ].join("\n"),
+      "decisions.md": [
+        "# Decisions",
+        "",
+        "## 2026-11-24 — Idea Selection",
+        "**Author:** jaminleod",
+        "",
+        "Chosen idea: **Bob Logbook** — a git shadow-branch workspace that lets IBM Bob and developers",
+        "read, write, and commit arbitrary files on a dedicated branch without touching the working tree.",
+        "",
+        "## 2026-11-24 — Tech Stack",
+        "**Author:** jaminleod",
+        "",
+        "Python 3 stdlib only. No pip installs.",
+        "",
+        "## 2026-11-24 — Export Format",
+        "**Author:** jaminleod",
+        "",
+        "Agreed JSON format: `{ exported_at, branch, files: { path: content } }`"
+      ].join("\n"),
+      "README.md": "# Bob Logbook — AI Workspace\n\nThis is the bob-context shadow branch.\nFiles here are managed by bob_log.py and auto-captured by Bob lifecycle hooks.\n"
+    }
+  });
+}
 </script>
 </body>
 </html>

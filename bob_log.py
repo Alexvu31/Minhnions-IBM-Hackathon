@@ -321,8 +321,9 @@ def cmd_export_json(args) -> None:
     """Dump every file on bob-context to a JSON file for the HTML viewer.
 
     Output format:
-        { "files": { "<path>": "<content>", ... } }
+        { "exported_at": "<ISO8601>", "branch": "bob-context", "files": { "<path>": "<content>", ... } }
     """
+    import datetime
     if not _branch_exists():
         print(f"Error: branch '{BRANCH}' does not exist. Run `bob-log init` first.", file=sys.stderr)
         sys.exit(1)
@@ -335,15 +336,21 @@ def cmd_export_json(args) -> None:
     for path in paths:
         files[path] = _read_blob(path)
 
-    payload = json.dumps({"files": files}, ensure_ascii=False, indent=2)
+    exported_at = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    # ensure_ascii=True keeps the JSON safe for all stdout encodings (e.g. Windows cp1252)
+    payload = json.dumps(
+        {"exported_at": exported_at, "branch": BRANCH, "files": files},
+        ensure_ascii=True,
+        indent=2,
+    )
 
     if args.dest:
         dest = Path(args.dest)
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_text(payload, encoding="utf-8")
-        print(f"Exported {len(files)} file(s) → '{dest}'")
+        print(f"Exported {len(files)} file(s) -> '{dest}'")
     else:
-        sys.stdout.write(payload + "\n")
+        sys.stdout.buffer.write((payload + "\n").encode("utf-8"))
 
 
 # ---------------------------------------------------------------------------
