@@ -244,3 +244,13 @@ Ready to implement when you are — switch to agent mode and start with Sub-Task
 **user-prompt** | 2026-11-24T18:24:07Z | author: `jaminleod` | session: `8606d5cc441ea48f44da5e843fb64605`
 
 Okay good, otherwise this would not make sense. Lets start with sub-task 7.
+
+## Entry-001 - user-prompt
+**Timestamp:** 2026-11-24T18:24:33Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** s1
+
+What is the architecture?
+
+---
