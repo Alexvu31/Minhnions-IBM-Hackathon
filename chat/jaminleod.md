@@ -826,3 +826,13 @@ The `CONTEXT.md` Entry-011 has everything alexvu31 needs — PDF instructions, e
 Fix the README; I want to highlight it's
 
 ---
+
+## Entry-049 - user-prompt
+**Timestamp:** 2026-11-24T19:35:16Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** f7f23ca4e278d3746ce170b98d1796ec
+
+Fix the README; I want to highlight that it's for collaboration with a team, asynchornous & synchronously. Please.
+
+---
