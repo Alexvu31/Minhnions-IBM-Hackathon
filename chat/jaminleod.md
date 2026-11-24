@@ -775,3 +775,13 @@ The only thing that changed from before was deleting the 3 fake `s1` entries fro
 Update the chat tab bar text when the filters change, like how all chats shouldn't show (43) if I filter it to 34 message
 
 ---
+
+## Entry-045 - bob-response
+**Timestamp:** 2026-11-24T19:31:43Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** f7f23ca4e278d3746ce170b98d1796ec
+
+Done — `479c678`. Now `💬 All Chats (43)` becomes `💬 All Chats (34)` the moment you check/uncheck anything in the filter, and snaps back when you clear it. The `_renderTabBar` call that already happens on every filter checkbox change picks it up automatically.
+
+---
