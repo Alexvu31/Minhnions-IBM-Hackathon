@@ -414,3 +414,22 @@ Run `python3 bob_log.py serve` and your real session data will render correctly 
 Okay better but the styling is still really bad on the chat bubble. The author badge comes after the message (not contained within it at the top) and everything is wrapped in an <em> for some reason. Also a way to identify which AI message is who's with an indicator saying it's for them or that session would help. Oh, actually I see you tried with that. But the author badge is way off on the left not beside the content and has no margins so the badge, time, and session id for msg-meta are crushed together.
 
 ---
+
+## Entry-026 - bob-response
+**Timestamp:** 2026-11-24T18:54:45Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** 8606d5cc441ea48f44da5e843fb64605
+
+All correct — session IDs and filenames with underscores are left alone, actual `_word_` italic syntax works. Syntax clean. 
+
+The layout is now:
+- Each message is a `.msg-row` → `.msg-col` → `.bubble` + `.msg-meta` column
+- `msg-col` is capped at 72% width, aligned left for AI and right for user
+- `msg-meta` sits directly below the bubble, same width, with `author-name · time · session-snip` spaced with `gap: 6px`
+- AI author name in IBM Blue, user in gray-70
+- No em-wrapping on underscored identifiers
+
+Run `python3 bob_log.py serve` to see it live.
+
+---
