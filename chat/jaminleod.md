@@ -465,3 +465,13 @@ No code changes needed — it was already safe. The `esc()` call at the top of `
 The session dividers are cool but might get annoying since different users in the all chat will be on different session automatically. Worth just getting rid of I believe.
 
 ---
+
+## Entry-030 - bob-response
+**Timestamp:** 2026-11-24T18:56:31Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** 8606d5cc441ea48f44da5e843fb64605
+
+Done. Session dividers are gone — the session short ID still shows in the `msg-meta` line below each bubble (8 chars, monospace) so context is still there without the visual noise.
+
+---
