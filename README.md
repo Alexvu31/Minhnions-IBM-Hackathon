@@ -124,37 +124,24 @@ Replace `/absolute/path/to/` with the path to your clone. On the hackathon envir
 
 Bob will now capture every turn automatically.
 
-### 5. Dogfood: see your own session in the viewer
+### 5. That's it — the hook handles everything else
 
-Start the live server in one terminal:
+Once the hooks are configured, Bob Logbook runs itself:
+
+- **Every prompt and response** is captured to `chat/$USER.md` on `bob-context`
+- **After each turn**, the shadow branch is pushed to GitHub automatically — no manual `git push`
+- **Your teammate** can run `bob-log serve` at any time to see your sessions, live or async
 
 ```sh
+# See your own session live
 python3 bob_log.py serve
-```
+# Open http://localhost:4242
 
-Open `http://localhost:4242` in your browser. As you work with Bob, entries appear within one second.
-
-### 6. Share your session with your teammate (async)
-
-After a session, push the shadow branch so your teammate can see it:
-
-```sh
-git push origin bob-context
-```
-
-Your teammate pulls it and sees your full session:
-
-```sh
+# Your teammate (on their machine, after cloning)
 git fetch origin bob-context:bob-context
 python3 bob_log.py serve
-# Open http://localhost:4242 — their All Chats tab now includes your session
+# Their All Chats tab now includes your session, updated after every Bob turn
 ```
-
-### 7. Watch a teammate's session live (sync)
-
-Both teammates run `bob-log serve` on their own machines. As long as one of you pushes the shadow branch periodically (or sets up a push hook), the other's viewer will show new entries.
-
-For fully live sync, the `SessionStart` hook (see stretch goals) handles the fetch automatically on each new Bob session.
 
 ---
 
