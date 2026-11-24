@@ -785,3 +785,13 @@ Update the chat tab bar text when the filters change, like how all chats shouldn
 Done — `479c678`. Now `💬 All Chats (43)` becomes `💬 All Chats (34)` the moment you check/uncheck anything in the filter, and snaps back when you clear it. The `_renderTabBar` call that already happens on every filter checkbox change picks it up automatically.
 
 ---
+
+## Entry-046 - user-prompt
+**Timestamp:** 2026-11-24T19:32:18Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** f7f23ca4e278d3746ce170b98d1796ec
+
+Doesn't work but it's fine. Commit all of this; need to send off to teammate.
+
+---
