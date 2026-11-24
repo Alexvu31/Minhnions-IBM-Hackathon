@@ -507,3 +507,13 @@ SSE `Content-Type: text/event-stream` ✅. The browser-open errors are expected 
 Mark everything done and update the plan:
 
 ---
+
+## Entry-015 - user-prompt
+**Timestamp:** 2026-11-24T18:42:41Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** 8606d5cc441ea48f44da5e843fb64605
+
+What happened? You didn't finish. We don't need to have xdg-open, just let the link be there the user can click it
+
+---
