@@ -748,3 +748,20 @@ To clarify what actually happened across those two requests:
 But being able to filter sessions was a good thing not a bad one
 
 ---
+
+## Entry-043 - bob-response
+**Timestamp:** 2026-11-24T19:30:31Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** f7f23ca4e278d3746ce170b98d1796ec
+
+Done — `d9ee85e`. Session filtering is fully restored:
+
+- **Filter dropdown** shows Author checkboxes + Session checkboxes (truncated to 8 chars, full ID on hover)
+- **Active session pills** appear in the toolbar when a session filter is active
+- **"Open as new tab"** includes session in the new tab's label: `💬 jaminleod · f7f23ca4…`
+- **Live filter** applies both author and session simultaneously on checkbox change
+
+The only thing that changed from before was deleting the 3 fake `s1` entries from the shadow branch data — the filter itself should have been left alone.
+
+---
