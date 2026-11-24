@@ -355,3 +355,21 @@ NO, do not parse both, the old format can be removed
 I'd also like from now on to just use the data from our shadow branch, allowing us to dogfood our development easily
 
 ---
+
+## Entry-022 - bob-response
+**Timestamp:** 2026-11-24T18:48:05Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** 8606d5cc441ea48f44da5e843fb64605
+
+The shadow branch is live and capturing every turn. The hooks are writing clean `## Entry-NNN` entries in real time — including your last two messages just now.
+
+**Everything is working:**
+- Parser is clean — new format only, no dual-format complexity
+- Shadow branch has 21 entries, all correctly formatted with `type`, `author`, `timestamp`, `session`
+- `bob-log serve` serves the viewer at `http://localhost:4242`, auto-loads from `/api/export`, and SSE pushes `new-data` within 1 second of any `bob-log write`
+- Run `python3 bob_log.py serve` and open the URL — you'll see your own real session in the chat UI
+
+Ready for a commit message, then Sub-Task 8 (the `log` and `diff` commands)?
+
+---
