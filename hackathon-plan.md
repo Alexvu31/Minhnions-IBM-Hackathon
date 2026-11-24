@@ -188,7 +188,7 @@
 
 ## Sub-Task 6 — PDF Submission
 
-**Status:** [x] done
+**Status:** [ ] done
 
 **Intent:** Produce the 4-page PDF that demonstrates meaningful Bob usage and presents the project to judges.
 

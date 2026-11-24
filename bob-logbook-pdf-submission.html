@@ -1,0 +1,627 @@
+
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bob Logbook — CIPS × IBM Hackathon 2026</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    font-size: 11pt;
+    line-height: 1.55;
+    color: #161616;
+    background: #d0d0d0;
+  }
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    background: #fff;
+    margin: 20px auto;
+    padding: 16mm 16mm 20mm 16mm;
+    page-break-after: always;
+    position: relative;
+    overflow: hidden;
+  }
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+    border-bottom: 2.5px solid #0f62fe;
+  }
+  .page-header .brand { font-size: 11pt; font-weight: 700; color: #0f62fe; letter-spacing: 0.03em; }
+  .page-header .meta  { font-size: 8.5pt; color: #57606a; text-align: right; }
+  .page-footer {
+    position: absolute;
+    bottom: 10mm;
+    left: 16mm;
+    right: 16mm;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 5px;
+    font-size: 8pt;
+    color: #57606a;
+  }
+  h1 { font-size: 20pt; font-weight: 700; color: #161616; line-height: 1.2; }
+  h2 { font-size: 13pt; font-weight: 700; color: #0f62fe; margin-top: 16px; margin-bottom: 6px; }
+  h3 { font-size: 10.5pt; font-weight: 600; color: #393939; margin-top: 12px; margin-bottom: 4px; }
+  p  { margin-bottom: 7px; font-size: 10.5pt; }
+  ul, ol { margin-left: 18px; margin-bottom: 7px; font-size: 10.5pt; }
+  li { margin-bottom: 3px; }
+  code {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 9pt;
+    background: #f4f4f4;
+    padding: 1px 4px;
+    border-radius: 2px;
+    color: #0043ce;
+  }
+
+  /* Cover hero */
+  .cover-hero {
+    background: #161616;
+    color: #fff;
+    border-radius: 4px;
+    padding: 20px 22px 18px 22px;
+    margin-bottom: 16px;
+  }
+  .cover-hero .label {
+    font-size: 8pt;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #6ea6ff;
+    margin-bottom: 8px;
+  }
+  .cover-hero h1 { color: #fff; font-size: 22pt; }
+  .cover-hero .tagline { margin-top: 8px; font-size: 11pt; color: #c6c6c6; max-width: 460px; }
+  .cover-meta { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .pill {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 8.5pt;
+    color: #e0e0e0;
+  }
+
+  /* Story box */
+  .story-box {
+    background: #edf4ff;
+    border-left: 4px solid #0f62fe;
+    border-radius: 0 4px 4px 0;
+    padding: 10px 14px;
+    margin: 10px 0;
+    font-size: 10.5pt;
+    font-style: italic;
+    color: #0043ce;
+  }
+
+  /* Score grid */
+  .score-grid { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
+  .score-card {
+    flex: 1 1 calc(50% - 8px);
+    background: #f4f4f4;
+    border-radius: 4px;
+    padding: 9px 12px;
+    border-top: 3px solid #0f62fe;
+    min-width: 160px;
+  }
+  .score-card .sc-title { font-size: 8.5pt; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #0f62fe; margin-bottom: 3px; }
+  .score-card .sc-pts  { font-size: 9pt; font-weight: 700; color: #161616; }
+  .score-card p { font-size: 9pt; color: #393939; margin: 0; }
+
+  /* Evidence cards */
+  .evidence-row { display: flex; gap: 8px; margin: 8px 0; flex-wrap: wrap; }
+  .ev-card {
+    flex: 1 1 calc(50% - 8px);
+    background: #f4f4f4;
+    border-radius: 4px;
+    padding: 9px 11px;
+    border-left: 3px solid #007d79;
+    min-width: 160px;
+  }
+  .ev-card .ev-step { font-size: 8pt; font-weight: 700; color: #007d79; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3px; }
+  .ev-card p { font-size: 9pt; color: #393939; margin: 0; }
+
+  /* Terminal boxes */
+  .screenshot-row { display: flex; gap: 10px; margin: 8px 0; }
+  .screenshot-box {
+    flex: 1;
+    background: #161616;
+    border-radius: 4px;
+    padding: 10px 12px;
+    color: #c6c6c6;
+    font-size: 8.5pt;
+    font-family: "Courier New", Courier, monospace;
+    line-height: 1.6;
+    border: 1px solid #3d3d3d;
+    overflow: hidden;
+  }
+  .screenshot-box .ss-title {
+    color: #6ea6ff;
+    font-weight: 700;
+    font-size: 7.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 7px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #3d3d3d;
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+  }
+  .ss-green  { color: #42be65; }
+  .ss-yellow { color: #f1c21b; }
+  .ss-blue   { color: #6ea6ff; }
+  .ss-comment { color: #6f6f6f; }
+
+  /* Code blocks */
+  .code-block {
+    background: #161616;
+    border-radius: 4px;
+    padding: 10px 13px;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 8.5pt;
+    line-height: 1.6;
+    color: #dde1e7;
+    margin: 7px 0;
+    overflow: hidden;
+  }
+  .code-label {
+    font-size: 8pt;
+    font-weight: 600;
+    color: #57606a;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 10px;
+    margin-bottom: 2px;
+  }
+  .kw  { color: #be95ff; }
+  .fn  { color: #82cfff; }
+  .str { color: #42be65; }
+  .cm  { color: #6f6f6f; font-style: italic; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; font-size: 9.5pt; margin: 8px 0; }
+  th { background: #161616; color: #fff; font-weight: 600; padding: 6px 10px; text-align: left; font-size: 9pt; }
+  td { padding: 5px 10px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+  tr:nth-child(even) td { background: #f4f4f4; }
+
+  /* Two-column layout */
+  .two-col { display: flex; gap: 14px; }
+  .col-left  { flex: 1.1; }
+  .col-right { flex: 0.9; }
+
+  /* Test rows */
+  .test-row { display: flex; gap: 6px; margin: 4px 0; align-items: flex-start; font-size: 9.5pt; }
+  .test-badge {
+    background: #24a148;
+    color: #fff;
+    font-size: 7.5pt;
+    font-weight: 700;
+    border-radius: 3px;
+    padding: 1px 5px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+  }
+
+  /* Reflection boxes */
+  .reflect-box {
+    background: #f6f2ff;
+    border-left: 4px solid #6929c4;
+    border-radius: 0 4px 4px 0;
+    padding: 10px 14px;
+    margin: 8px 0;
+    font-size: 10pt;
+    color: #393939;
+  }
+  .reflect-box strong { color: #6929c4; }
+  .reflect-box-blue {
+    background: #edf4ff;
+    border-left: 4px solid #0f62fe;
+    border-radius: 0 4px 4px 0;
+    padding: 10px 14px;
+    margin: 8px 0;
+    font-size: 10pt;
+    color: #393939;
+  }
+  .reflect-box-blue strong { color: #0043ce; }
+
+  @media print {
+    body { background: #fff; }
+    .page { margin: 0; box-shadow: none; page-break-after: always; }
+  }
+</style>
+</head>
+<body>
+
+
+<div class="page">
+  <div class="page-header">
+    <span class="brand">BOB LOGBOOK</span>
+    <span class="meta">CIPS × IBM Virtual Hackathon 2026  |  Team Minhnions</span>
+  </div>
+
+  <div class="cover-hero">
+    <div class="label">IBM Bob Hackathon  ·  2026-11-24</div>
+    <h1>Bob Logbook</h1>
+    <div class="tagline">A git shadow-branch AI workspace that automatically captures IBM Bob session context — so your teammates can pick up exactly where you left off.</div>
+    <div class="cover-meta">
+      <span class="pill">Python 3 · stdlib only</span>
+      <span class="pill">Git plumbing</span>
+      <span class="pill">Zero dependencies</span>
+      <span class="pill">IBM Bob hooks</span>
+      <span class="pill">jaminleod &amp; alexvu31</span>
+    </div>
+  </div>
+
+  <h2>The Problem</h2>
+  <p>Every time a developer works with IBM Bob, valuable context accumulates: decisions made, prompts that worked, constraints discovered, dead-ends avoided. That context lives only in the chat window. When the session ends, it disappears.</p>
+  <p>Teammates cannot pick up where someone left off without reading the entire chat history. The developer has to manually extract and document their own session. No one does this consistently.</p>
+
+  <div class="story-box">
+    "As a developer using IBM Bob, I want my AI session context captured automatically in git so my teammate can pick up exactly where I left off — without reading the entire chat history."
+  </div>
+
+  <h2>Our Solution</h2>
+  <p>Bob Logbook wires two IBM Bob lifecycle hooks (<code>UserPromptSubmit</code> and <code>Stop</code>) into a lightweight Python CLI that writes every turn to a dedicated <strong>git shadow branch</strong> (<code>bob-context</code>). The shadow branch shares no history with <code>main</code>, so there are never merge conflicts. A companion HTML viewer renders the workspace as a colour-coded browsable timeline — open in any browser, no server required.</p>
+
+  <div class="score-grid">
+    <div class="score-card">
+      <div class="sc-title">Innovation &amp; Creativity</div>
+      <div class="sc-pts">25 pts</div>
+      <p>Shadow branch as AI shared memory is a novel architectural pattern. The tool dogfoods Bob — it was built entirely using Bob.</p>
+    </div>
+    <div class="score-card">
+      <div class="sc-title">Relevance to Challenge</div>
+      <div class="sc-pts">25 pts</div>
+      <p>Extends IBM Bob's own hook API end-to-end: install hook → automatic capture → viewer → export → PDF. Complete workflow.</p>
+    </div>
+    <div class="score-card">
+      <div class="sc-title">Practicality &amp; Feasibility</div>
+      <div class="sc-pts">25 pts</div>
+      <p>Python 3 stdlib only. No pip installs, no accounts, no external APIs. Runs anywhere Python 3 + git exist. Tested and working.</p>
+    </div>
+    <div class="score-card">
+      <div class="sc-title">Quality &amp; Presentation</div>
+      <div class="sc-pts">25 pts</div>
+      <p>CLI + hook script + viewer + test suite + README + structured PDF. All four deliverables complete and demonstrated.</p>
+    </div>
+  </div>
+
+  <h2>How It Was Built</h2>
+  <p>We opened IBM Bob Shell (v2.1.0) and used it to brainstorm the idea, scope the MVP, write the CLI, generate the HTML viewer, write the test suite, and produce this document. The screenshots on page 2 show the planning conversation. The <code>CONTEXT.md</code> file in the repo is an append-only log of every key decision — itself evidence of the tool we built.</p>
+
+  <div class="page-footer">
+    <span>Bob Logbook  ·  CIPS × IBM Hackathon 2026</span>
+    <span>Page 1 of 4</span>
+  </div>
+</div>
+
+
+
+<div class="page">
+  <div class="page-header">
+    <span class="brand">BOB LOGBOOK</span>
+    <span class="meta">Architecture &amp; Bob Usage Evidence</span>
+  </div>
+
+  <h2>Architecture</h2>
+  <p>The entire system runs inside a single git repo with no external services. The shadow branch is the AI workspace — Bob reads and writes to it through git plumbing, never touching the developer's working tree.</p>
+
+  <svg xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;margin:10px 0 6px 0">
+    <defs>
+      <marker id="arr">
+        <path d="M0,0 L0,6 L8,3 z" fill="#0f62fe"></path>
+      </marker>
+      <marker id="arr2">
+        <path d="M0,0 L0,6 L8,3 z" fill="#007d79"></path>
+      </marker>
+    </defs>
+    
+    <rect x="10" y="30" width="110" height="60" rx="4" fill="#161616" stroke="#6ea6ff" stroke-width="1.5"></rect>
+    <text x="65" y="54" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="9" font-weight="700" fill="#6ea6ff">IBM BOB</text>
+    <text x="65" y="68" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="8" fill="#c6c6c6">UserPromptSubmit</text>
+    <text x="65" y="81" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="8" fill="#c6c6c6">Stop (hook events)</text>
+    
+    <line x1="121" y1="60" x2="158" y2="60" stroke="#0f62fe" stroke-width="1.8" marker-end="url(#arr)"></line>
+    <text x="140" y="54" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="7.5" fill="#6f6f6f">JSON stdin</text>
+    
+    <rect x="160" y="30" width="110" height="60" rx="4" fill="#edf4ff" stroke="#0f62fe" stroke-width="1.5"></rect>
+    <text x="215" y="54" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="9" font-weight="700" fill="#0f62fe">bob-log-hook.py</text>
+    <text x="215" y="68" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="8" fill="#393939">Parses payload</text>
+    <text x="215" y="81" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="8" fill="#393939">Routes to CLI</text>
+    
+    <line x1="271" y1="60" x2="308" y2="60" stroke="#0f62fe" stroke-width="1.8" marker-end="url(#arr)"></line>
+    <text x="290" y="54" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="7.5" fill="#6f6f6f">append call</text>
+    
+    <rect x="310" y="30" width="110" height="60" rx="4" fill="#edf4ff" stroke="#0f62fe" stroke-width="1.5"></rect>
+    <text x="365" y="54" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="9" font-weight="700" fill="#0f62fe">bob_log.py</text>
+    <text x="365" y="68" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="8" fill="#393939">git plumbing:</text>
+    <text x="365" y="81" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="8" fill="#393939">hash-object → update-ref</text>
+    
+    <line x1="421" y1="60" x2="458" y2="60" stroke="#0f62fe" stroke-width="1.8" marker-end="url(#arr)"></line>
+    <text x="440" y="54" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="7.5" fill="#6f6f6f">commits</text>
+    
+    <rect x="460" y="10" width="150" height="40" rx="4" fill="#161616" stroke="#42be65" stroke-width="1.5"></rect>
+    <text x="535" y="27" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="9" font-weight="700" fill="#42be65">bob-context branch</text>
+    <text x="535" y="41" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="8" fill="#c6c6c6">chat/jaminleod.md · chat/alexvu31.md</text>
+    
+    <rect x="460" y="70" width="150" height="40" rx="4" fill="#f6f2ff" stroke="#6929c4" stroke-width="1.5"></rect>
+    <text x="535" y="87" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="9" font-weight="700" fill="#6929c4">viewer.html</text>
+    <text x="535" y="101" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="8" fill="#393939">file tree · timeline · print PDF</text>
+    
+    <line x1="535" y1="51" x2="535" y2="69" stroke="#007d79" stroke-width="1.8" marker-end="url(#arr2)"></line>
+    <text x="558" y="62" font-family="-apple-system,sans-serif" font-size="7.5" fill="#007d79">export-json</text>
+    
+    <rect x="460" y="130" width="150" height="32" rx="4" fill="#f4f4f4" stroke="#e5e7eb" stroke-width="1.5"></rect>
+    <text x="535" y="145" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="9" font-weight="700" fill="#6f6f6f">main branch</text>
+    <text x="535" y="157" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="7.5" fill="#999">zero shared history — no conflicts</text>
+    <line x1="535" y1="111" x2="535" y2="129" stroke="#e0e0e0" stroke-width="1.5"></line>
+  </svg>
+
+  <h2>Bob Usage Evidence</h2>
+  <p>IBM Bob was used at every stage of the build. The screenshots in this document show the planning session that opened this project — Bob read our initial prompt, asked three clarifying questions, evaluated four idea pitches, then proposed and refined the Bob Logbook concept.</p>
+
+  <div class="evidence-row">
+    <div class="ev-card">
+      <div class="ev-step">Step 1 — Planning</div>
+      <p>Bob read the hackathon slides, asked about tech background &amp; domain, then pitched four ideas. We provided feedback and Bob pivoted toward the strongest one.</p>
+    </div>
+    <div class="ev-card">
+      <div class="ev-step">Step 2 — Idea Refinement</div>
+      <p>Bob proposed "Bob Context Manager" then evolved it to "Bob Logbook" after we suggested using a git shadow branch. Bob recognised the novelty immediately.</p>
+    </div>
+    <div class="ev-card">
+      <div class="ev-step">Step 3 — Division of Labour</div>
+      <p>Bob scoped the MVP, defined two workstreams (CLI + hooks vs. viewer), and confirmed API risk before recommending the final frontend architecture.</p>
+    </div>
+    <div class="ev-card">
+      <div class="ev-step">Step 4 — Implementation</div>
+      <p>Bob wrote <code>bob_log.py</code>, the hook wrapper, the viewer HTML, the test suite, the README, and this PDF — all inside Bob Shell v2.1.0 on the same repository.</p>
+    </div>
+  </div>
+
+  <div class="screenshot-row">
+    <div class="screenshot-box" style="flex:1.4">
+      <div class="ss-title">Bob Shell v2.1.0 — Planning Session (from screenshots)</div>
+      <span class="ss-green">&gt;</span> Check slide1.png slide2.png slide3.png slide4.png<br />
+      <span class="ss-comment"># Bob reads hackathon brief images</span><br /><br />
+      <span class="ss-blue">Use Skill create-plan</span> <span class="ss-comment">(completed 0.0s)</span><br />
+      <span class="ss-green">•</span> Let me first read those slides to understand the context.<br />
+      <span class="ss-blue">Read File slide1.png</span> <span class="ss-comment">(completed 0.0s)</span><br />
+      <span class="ss-blue">Read File slide2.png</span> <span class="ss-comment">(completed 0.0s)</span><br />
+      <span class="ss-green">•</span> Good — I have the full picture. Let me gather<br />
+        the most important missing details before writing.<br />
+      <span class="ss-blue">Ask follow up</span> <span class="ss-comment">(completed 24.1s)</span>
+    </div>
+    <div class="screenshot-box" style="flex:0.9">
+      <div class="ss-title">Scoring criteria Bob identified</div>
+      <span class="ss-yellow">Innovation &amp; Creativity</span> (25)<br />
+      <span class="ss-comment">something judges haven't seen 10x</span><br /><br />
+      <span class="ss-yellow">Relevance to Challenge</span> (25)<br />
+      <span class="ss-comment">complete workflow + public API</span><br /><br />
+      <span class="ss-yellow">Practicality &amp; Feasibility</span> (25)<br />
+      <span class="ss-comment">must actually work / be demo-able</span><br /><br />
+      <span class="ss-yellow">Overall Quality</span> (25)<br />
+      <span class="ss-comment">PDF + optional video</span>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span>Bob Logbook  ·  CIPS × IBM Hackathon 2026</span>
+    <span>Page 2 of 4</span>
+  </div>
+</div>
+
+
+
+<div class="page">
+  <div class="page-header">
+    <span class="brand">BOB LOGBOOK</span>
+    <span class="meta">Code Highlights</span>
+  </div>
+
+  <div class="two-col">
+    <div class="col-left">
+      <h2>Hook Configuration</h2>
+      <p>Two Bob lifecycle events fire the same hook wrapper. <code>UserPromptSubmit</code> captures the developer's prompt before it is sent; <code>Stop</code> captures Bob's response after each turn.</p>
+
+      <div class="code-label">.bob/settings.json</div>
+      <div class="code-block">
+{<br />
+  <span class="str">"hooks"</span>: [<br />
+    {<br />
+      <span class="str">"event"</span>: <span class="str">"Stop"</span>,<br />
+      <span class="str">"type"</span>: <span class="str">"command"</span>,<br />
+      <span class="str">"command"</span>: <span class="str">"python3 .../bob-log-hook.py"</span><br />
+    },<br />
+    {<br />
+      <span class="str">"event"</span>: <span class="str">"UserPromptSubmit"</span>,<br />
+      <span class="str">"type"</span>: <span class="str">"command"</span>,<br />
+      <span class="str">"command"</span>: <span class="str">"python3 .../bob-log-hook.py"</span><br />
+    }<br />
+  ]<br />
+}
+      </div>
+
+      <div class="code-label">bob-log-hook.py — event routing</div>
+      <div class="code-block">
+<span class="kw">import</span> json, os, sys, subprocess<br /><br />
+payload = json.<span class="fn">load</span>(sys.stdin)<br />
+event   = payload[<span class="str">"hook_event_name"</span>]<br />
+author  = os.environ.get(<span class="str">"USER"</span>, <span class="str">"unknown"</span>)<br />
+sid     = payload.get(<span class="str">"session_id"</span>, <span class="str">""</span>)<br /><br />
+<span class="kw">if</span> event == <span class="str">"Stop"</span>:<br />
+  msg  = payload[<span class="str">"last_assistant_message"</span>]<br />
+  kind = <span class="str">"bob-response"</span><br />
+<span class="kw">elif</span> event == <span class="str">"UserPromptSubmit"</span>:<br />
+  msg  = payload[<span class="str">"prompt"</span>]<br />
+  kind = <span class="str">"user-prompt"</span><br /><br />
+<span class="cm"># append to chat/$USER.md on shadow branch</span><br />
+subprocess.<span class="fn">run</span>([<span class="str">"python3"</span>, <span class="str">"bob_log.py"</span>,<br />
+  <span class="str">"append"</span>, <span class="str">f"chat/{author}.md"</span>, entry])
+      </div>
+    </div>
+
+    <div class="col-right">
+      <h2>Git Plumbing — _write_blob</h2>
+      <p>All shadow-branch writes use low-level git plumbing. The working tree is <strong>never switched</strong>. This is the key technique — the developer's branch is never touched.</p>
+
+      <div class="code-label">bob_log.py — core plumbing</div>
+      <div class="code-block">
+<span class="kw">def</span> <span class="fn">_write_blob</span>(path, content, repo):<br />
+  <span class="cm"># 1. Store content as a git blob</span><br />
+  r = <span class="fn">_git</span>([<span class="str">"hash-object"</span>, <span class="str">"-w"</span>,<br />
+             <span class="str">"--stdin"</span>],<br />
+            inp=content, repo=repo)<br />
+  blob_sha = r.stdout.strip()<br /><br />
+  <span class="cm"># 2. Rebuild the tree with the new blob</span><br />
+  tree_sha = <span class="fn">_rebuild_tree</span>(<br />
+    path, blob_sha, repo)<br /><br />
+  <span class="cm"># 3. Create a new commit on top</span><br />
+  parent = <span class="fn">_resolve_ref</span>(<br />
+    <span class="str">"refs/heads/bob-context"</span>, repo)<br />
+  c = <span class="fn">_git</span>([<span class="str">"commit-tree"</span>, tree_sha,<br />
+            <span class="str">"-p"</span>, parent,<br />
+            <span class="str">"-m"</span>, <span class="str">f"log: {path}"</span>], repo=repo)<br /><br />
+  <span class="cm"># 4. Advance the branch pointer</span><br />
+  <span class="fn">_git</span>([<span class="str">"update-ref"</span>,<br />
+        <span class="str">"refs/heads/bob-context"</span>,<br />
+        c.stdout.strip()], repo=repo)
+      </div>
+
+      <h2>Viewer — Timeline Renderer</h2>
+      <p>The viewer parses the JSON export and splits files by path prefix. Files under <code>chat/</code> are rendered as author-coloured timeline cards.</p>
+
+      <div class="code-label">viewer.html — entry card rendering</div>
+      <div class="code-block">
+<span class="kw">function</span> <span class="fn">renderEntry</span>(entry) {<br />
+  <span class="kw">const</span> color = <span class="fn">authorColor</span>(entry.author);<br />
+  <span class="kw">return</span> <span class="str">`&lt;div class="card"</span><br />
+    <span class="str">style="border-left:3px solid ${color}"&gt;</span><br />
+    <span class="str">&lt;span class="badge"&gt;${entry.type}&lt;/span&gt;</span><br />
+    <span class="str">&lt;span class="ts"&gt;${entry.ts}&lt;/span&gt;</span><br />
+    <span class="str">&lt;pre&gt;${entry.body}&lt;/pre&gt;</span><br />
+  <span class="str">&lt;/div&gt;`</span>;<br />
+}
+      </div>
+    </div>
+  </div>
+
+  <h2>Export Format — Shadow Branch Snapshot</h2>
+  <p>Running <code>python3 bob_log.py export-json</code> produces a single JSON file consumed by the viewer. This format was agreed between both teammates before Sub-Task 4 began — it is the coordination contract between the CLI and the frontend.</p>
+  <div class="code-block" style="font-size:8pt">
+{<br />
+  <span class="str">"exported_at"</span>: <span class="str">"2026-11-24T17:42:00Z"</span>,<br />
+  <span class="str">"branch"</span>: <span class="str">"bob-context"</span>,<br />
+  <span class="str">"files"</span>: {<br />
+    <span class="str">"chat/jaminleod.md"</span>: <span class="str">"---\n**bob-response** | 2026-11-24T17:00:00Z | author: `jaminleod` | session: `abc-123`\n..."</span>,<br />
+    <span class="str">"chat/alexvu31.md"</span>: <span class="str">"..."</span><br />
+  }<br />
+}
+  </div>
+
+  <div class="page-footer">
+    <span>Bob Logbook  ·  CIPS × IBM Hackathon 2026</span>
+    <span>Page 3 of 4</span>
+  </div>
+</div>
+
+
+
+<div class="page">
+  <div class="page-header">
+    <span class="brand">BOB LOGBOOK</span>
+    <span class="meta">Testing · How to Run · Team Reflection</span>
+  </div>
+
+  <div class="two-col">
+    <div class="col-left">
+      <h2>Test Suite</h2>
+      <p>All tests live in <code>test_bob_log.py</code> using Python's <code>unittest</code> + <code>tempfile</code>. Each test spins up a fresh <code>git init</code> directory, runs operations, and asserts outcomes — zero external dependencies.</p>
+
+      <div class="test-row"><span class="test-badge">PASS</span> <span><strong>test_init</strong> — <code>bob-context</code> ref exists after <code>init</code>; calling init twice is idempotent.</span></div>
+      <div class="test-row"><span class="test-badge">PASS</span> <span><strong>test_write_read</strong> — write a file, read it back, assert content matches exactly.</span></div>
+      <div class="test-row"><span class="test-badge">PASS</span> <span><strong>test_append</strong> — write then append; read back and assert both parts are present.</span></div>
+      <div class="test-row"><span class="test-badge">PASS</span> <span><strong>test_ls</strong> — write two files in different paths; both appear in <code>ls</code> output.</span></div>
+      <div class="test-row"><span class="test-badge">PASS</span> <span><strong>test_export</strong> — write a file, export to a temp path; assert file exists with correct content.</span></div>
+      <div class="test-row"><span class="test-badge">PASS</span> <span><strong>test_path_jail</strong> — write with <code>../escape</code> path is rejected; working tree is unchanged.</span></div>
+      <div class="test-row"><span class="test-badge">PASS</span> <span><strong>test_isolation</strong> — shadow-branch writes never appear in the working tree on main.</span></div>
+
+      <h2>How to Run</h2>
+      <div class="code-block" style="font-size:8.5pt">
+<span class="cm"># 1. Initialise the shadow branch</span><br />
+python3 bob_log.py init<br /><br />
+<span class="cm"># 2. Configure Bob hooks (.bob/settings.json)</span><br />
+<span class="cm">#    See README.md § Hook Setup for the full JSON</span><br /><br />
+<span class="cm"># 3. Use IBM Bob normally — context is captured</span><br />
+bob<br /><br />
+<span class="cm"># 4. Browse the workspace</span><br />
+python3 bob_log.py export-json snapshot.json<br />
+<span class="cm"># Open viewer.html, drag-and-drop snapshot.json</span><br /><br />
+<span class="cm"># 5. Run tests</span><br />
+python3 test_bob_log.py
+      </div>
+
+      <h2>Repo Structure</h2>
+      <table>
+        <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>bob_log.py</code></td><td>Core CLI — all shadow-branch ops</td></tr>
+          <tr><td><code>bob-log-hook.py</code></td><td>Bob hook wrapper — JSON stdin router</td></tr>
+          <tr><td><code>viewer.html</code></td><td>Single-file browser workspace viewer</td></tr>
+          <tr><td><code>test_bob_log.py</code></td><td>Python unittest integration suite</td></tr>
+          <tr><td><code>.bob/settings.json</code></td><td>Hook config (workspace scope)</td></tr>
+          <tr><td><code>CONTEXT.md</code></td><td>Append-only decision log</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="col-right">
+      <h2>Team Reflection</h2>
+
+      <div class="reflect-box">
+        <strong>jaminleod (Benjamin)</strong><br />
+        I went into this hackathon with a clear skill edge: systems-level work and git internals. Using Bob to brainstorm the idea was itself a proof-of-concept — when Bob suggested building a tool that improves Bob's own workflow, presented to Bob's developers, it was the sharpest strategic insight of the session. The shadow-branch technique (orphan branch + pure git plumbing, no worktree switch) was the technical core that made the whole thing safe. Writing the CLI took most of the morning; the hook wiring was surprisingly clean once the payload schemas were confirmed from Bob's docs.
+      </div>
+
+      <div class="reflect-box-blue">
+        <strong>alexvu31 (Alex)</strong><br />
+        My side was the viewer and the visual layer. The challenge was making a single HTML file that required no server and could open a JSON export and render it cleanly. The colour-coded author cards came together quickly once the export format was agreed as a contract. Having the format defined before I started the viewer meant zero blocking back-and-forth. The IBM Bob IDE integration — Bob Shell directly inside the editor — was something I hadn't seen before; it changed how I think about AI-assisted development.
+      </div>
+
+      <h2>What Makes It Novel</h2>
+      <ul>
+        <li><strong>Shadow branch as AI working memory</strong> — no existing tool does this; the pattern is transferable to any git-backed AI tool.</li>
+        <li><strong>Dogfooding</strong> — the tool was built entirely using the tool's own target platform (IBM Bob). This submission is living proof.</li>
+        <li><strong>Zero-conflict team collaboration</strong> — append-only Markdown on a per-author file; two teammates can run hooks simultaneously with no merge conflicts possible.</li>
+        <li><strong>No external dependencies</strong> — Python 3 stdlib + git. Works in any IBM Bob environment without additional setup.</li>
+      </ul>
+
+      <h2>Scoring Self-Assessment</h2>
+      <table>
+        <thead><tr><th>Criterion</th><th>Evidence</th></tr></thead>
+        <tbody>
+          <tr><td>Innovation</td><td>Shadow branch as AI workspace; tool dogfoods Bob</td></tr>
+          <tr><td>Relevance</td><td>Extends Bob's hook API; full workflow end-to-end</td></tr>
+          <tr><td>Practicality</td><td>stdlib only; tested; runs anywhere git + Python 3 exist</td></tr>
+          <tr><td>Quality</td><td>CLI + viewer + tests + README + PDF — all complete</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span>Bob Logbook  ·  CIPS × IBM Hackathon 2026  ·  jaminleod &amp; alexvu31</span>
+    <span>Page 4 of 4</span>
+  </div>
+</div>
+
+<p style="text-align:center;font-size:11px;color:#8a8a8a;border-top:1px solid #e0e0e0;padding:10px 0;margin-top:4px">Made with IBM Bob</p>
+</body>
+</html>
