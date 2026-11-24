@@ -1,34 +1,4 @@
-## Entry-001 - user-prompt
-**Timestamp:** 2026-11-24T18:24:33Z
-**Author:** jaminleod
-**Type:** user-prompt
-**Session:** s1
-
-What is the architecture?
-
----
-
-## Entry-002 - bob-response
-**Timestamp:** 2026-11-24T18:24:34Z
-**Author:** jaminleod
-**Type:** bob-response
-**Session:** s1
-
-Shadow branch + git plumbing + hooks + viewer.
-
----
-
-## Entry-003 - user-prompt
-**Timestamp:** 2026-11-24T18:24:34Z
-**Author:** jaminleod
-**Type:** user-prompt
-**Session:** s1
-
-Can you show me the write command?
-
----
-
-## Entry-004 - bob-response
+## Entry-001 - bob-response
 **Timestamp:** 2026-11-24T18:26:13Z
 **Author:** jaminleod
 **Type:** bob-response
@@ -56,7 +26,7 @@ Ready for the commit message, then Sub-Task 8?
 
 ---
 
-## Entry-005 - user-prompt
+## Entry-002 - user-prompt
 **Timestamp:** 2026-11-24T18:26:52Z
 **Author:** jaminleod
 **Type:** user-prompt
@@ -66,7 +36,7 @@ Okay, make a commit message & tag message. Then I want to change more styling, b
 
 ---
 
-## Entry-006 - bob-response
+## Entry-003 - bob-response
 **Timestamp:** 2026-11-24T18:26:57Z
 **Author:** jaminleod
 **Type:** bob-response
@@ -101,7 +71,7 @@ Now — what's your vision for the styling? Walk me through it and I'll implemen
 
 ---
 
-## Entry-007 - user-prompt
+## Entry-004 - user-prompt
 **Timestamp:** 2026-11-24T18:32:12Z
 **Author:** jaminleod
 **Type:** user-prompt
@@ -113,7 +83,7 @@ Atop of that, I want the chats to be filtered rather than just on the right side
 
 ---
 
-## Entry-008 - bob-response
+## Entry-005 - bob-response
 **Timestamp:** 2026-11-24T18:35:20Z
 **Author:** jaminleod
 **Type:** bob-response
@@ -158,7 +128,7 @@ Shall I write these as Sub-Tasks 7b and 7c into [`hackathon-plan.md`](hackathon-
 
 ---
 
-## Entry-009 - user-prompt
+## Entry-006 - user-prompt
 **Timestamp:** 2026-11-24T18:35:44Z
 **Author:** jaminleod
 **Type:** user-prompt
@@ -168,7 +138,7 @@ Yes add them to the plan and make sure that we have this context somewhere for u
 
 ---
 
-## Entry-010 - bob-response
+## Entry-007 - bob-response
 **Timestamp:** 2026-11-24T18:36:48Z
 **Author:** jaminleod
 **Type:** bob-response
@@ -205,7 +175,7 @@ Ready to implement when you switch to agent mode — start with Sub-Task 7b?
 
 ---
 
-## Entry-011 - user-prompt
+## Entry-008 - user-prompt
 **Timestamp:** 2026-11-24T18:37:02Z
 **Author:** jaminleod
 **Type:** user-prompt
@@ -215,7 +185,7 @@ Make a commit message for this before I do any work
 
 ---
 
-## Entry-012 - bob-response
+## Entry-009 - bob-response
 **Timestamp:** 2026-11-24T18:37:06Z
 **Author:** jaminleod
 **Type:** bob-response
@@ -239,7 +209,7 @@ git tag v0.5-plan-7b-7c -m "Plan: Sub-Tasks 7b and 7c scoped + PDF evidence capt
 
 ---
 
-## Entry-013 - user-prompt
+## Entry-010 - user-prompt
 **Timestamp:** 2026-11-24T18:38:32Z
 **Author:** jaminleod
 **Type:** user-prompt
@@ -249,7 +219,7 @@ Okay we can build. Let's go. Incremental work, and if any styling changes along 
 
 ---
 
-## Entry-014 - bob-response
+## Entry-011 - bob-response
 **Timestamp:** 2026-11-24T18:41:03Z
 **Author:** jaminleod
 **Type:** bob-response
@@ -261,7 +231,7 @@ Mark everything done and update the plan:
 
 ---
 
-## Entry-015 - user-prompt
+## Entry-012 - user-prompt
 **Timestamp:** 2026-11-24T18:42:41Z
 **Author:** jaminleod
 **Type:** user-prompt
@@ -271,7 +241,7 @@ What happened? You didn't finish. We don't need to have xdg-open, just let the l
 
 ---
 
-## Entry-016 - bob-response
+## Entry-013 - bob-response
 **Timestamp:** 2026-11-24T18:42:41Z
 **Author:** jaminleod
 **Type:** bob-response
@@ -283,7 +253,7 @@ Mark everything done and update the plan:
 
 ---
 
-## Entry-017 - user-prompt
+## Entry-014 - user-prompt
 **Timestamp:** 2026-11-24T18:43:01Z
 **Author:** jaminleod
 **Type:** user-prompt
@@ -293,7 +263,7 @@ What happened? You didn't finish. We don't need to have xdg-open, just let the l
 
 ---
 
-## Entry-018 - bob-response
+## Entry-015 - bob-response
 **Timestamp:** 2026-11-24T18:43:37Z
 **Author:** jaminleod
 **Type:** bob-response
@@ -327,7 +297,7 @@ Done. Here's the full summary of what was built:
 
 ---
 
-## Entry-019 - user-prompt
+## Entry-016 - user-prompt
 **Timestamp:** 2026-11-24T18:45:16Z
 **Author:** jaminleod
 **Type:** user-prompt
@@ -337,7 +307,7 @@ Okay we don't need an avatar, and the author badge says it's unknown. And the 'T
 
 ---
 
-## Entry-020 - user-prompt
+## Entry-017 - user-prompt
 **Timestamp:** 2026-11-24T18:46:30Z
 **Author:** jaminleod
 **Type:** user-prompt
@@ -346,7 +316,7 @@ Okay we don't need an avatar, and the author badge says it's unknown. And the 'T
 NO, do not parse both, the old format can be removed
 
 ---
-## Entry-021 - user-prompt
+## Entry-018 - user-prompt
 **Timestamp:** 2026-11-24T18:47:29Z
 **Author:** jaminleod
 **Type:** user-prompt
@@ -356,7 +326,7 @@ I'd also like from now on to just use the data from our shadow branch, allowing 
 
 ---
 
-## Entry-022 - bob-response
+## Entry-019 - bob-response
 **Timestamp:** 2026-11-24T18:48:05Z
 **Author:** jaminleod
 **Type:** bob-response
@@ -374,7 +344,7 @@ Ready for a commit message, then Sub-Task 8 (the `log` and `diff` commands)?
 
 ---
 
-## Entry-023 - user-prompt
+## Entry-020 - user-prompt
 **Timestamp:** 2026-11-24T18:49:30Z
 **Author:** jaminleod
 **Type:** user-prompt
@@ -386,7 +356,7 @@ Why is the styling still doing this?
 
 ---
 
-## Entry-024 - bob-response
+## Entry-021 - bob-response
 **Timestamp:** 2026-11-24T18:50:50Z
 **Author:** jaminleod
 **Type:** bob-response
@@ -405,7 +375,7 @@ Run `python3 bob_log.py serve` and your real session data will render correctly 
 
 ---
 
-## Entry-025 - user-prompt
+## Entry-022 - user-prompt
 **Timestamp:** 2026-11-24T18:54:04Z
 **Author:** jaminleod
 **Type:** user-prompt
@@ -415,7 +385,7 @@ Okay better but the styling is still really bad on the chat bubble. The author b
 
 ---
 
-## Entry-026 - bob-response
+## Entry-023 - bob-response
 **Timestamp:** 2026-11-24T18:54:45Z
 **Author:** jaminleod
 **Type:** bob-response
@@ -434,7 +404,7 @@ Run `python3 bob_log.py serve` to see it live.
 
 ---
 
-## Entry-027 - user-prompt
+## Entry-024 - user-prompt
 **Timestamp:** 2026-11-24T18:55:01Z
 **Author:** jaminleod
 **Type:** user-prompt
@@ -444,7 +414,7 @@ Whilst your at it with the underscores you can also make sure we break any html 
 
 ---
 
-## Entry-028 - bob-response
+## Entry-025 - bob-response
 **Timestamp:** 2026-11-24T18:55:21Z
 **Author:** jaminleod
 **Type:** bob-response
@@ -456,7 +426,7 @@ No code changes needed — it was already safe. The `esc()` call at the top of `
 
 ---
 
-## Entry-029 - user-prompt
+## Entry-026 - user-prompt
 **Timestamp:** 2026-11-24T18:56:21Z
 **Author:** jaminleod
 **Type:** user-prompt
@@ -466,7 +436,7 @@ The session dividers are cool but might get annoying since different users in th
 
 ---
 
-## Entry-030 - bob-response
+## Entry-027 - bob-response
 **Timestamp:** 2026-11-24T18:56:31Z
 **Author:** jaminleod
 **Type:** bob-response
@@ -476,7 +446,7 @@ Done. Session dividers are gone — the session short ID still shows in the `msg
 
 ---
 
-## Entry-031 - user-prompt
+## Entry-028 - user-prompt
 **Timestamp:** 2026-11-24T18:57:37Z
 **Author:** jaminleod
 **Type:** user-prompt
@@ -486,7 +456,7 @@ Can you please add this into context.md so I can start a new session; and whilst
 
 ---
 
-## Entry-032 - bob-response
+## Entry-029 - bob-response
 **Timestamp:** 2026-11-24T18:58:23Z
 **Author:** jaminleod
 **Type:** bob-response
@@ -506,7 +476,7 @@ The shadow branch now has three items: `README.md`, `chat/jaminleod.md`, and `no
 
 ---
 
-## Entry-033 - user-prompt
+## Entry-030 - user-prompt
 **Timestamp:** 2026-11-24T19:01:33Z
 **Author:** jaminleod
 **Type:** user-prompt
@@ -516,7 +486,7 @@ give me a commit message for my staged files and read @/home/jaminleod/projects/
 
 ---
 
-## Entry-034 - bob-response
+## Entry-031 - bob-response
 **Timestamp:** 2026-11-24T19:02:48Z
 **Author:** jaminleod
 **Type:** bob-response
@@ -569,7 +539,7 @@ CONTEXT.md: add Entry-010 session handoff (7b/7c complete, next: Sub-Task 8)
 
 ---
 
-## Entry-035 - user-prompt
+## Entry-032 - user-prompt
 **Timestamp:** 2026-11-24T19:05:11Z
 **Author:** jaminleod
 **Type:** user-prompt
@@ -579,7 +549,7 @@ Okay I did the commit. I'd like to do more UI changes, what other things are wai
 
 ---
 
-## Entry-036 - bob-response
+## Entry-033 - bob-response
 **Timestamp:** 2026-11-24T19:13:40Z
 **Author:** jaminleod
 **Type:** bob-response
@@ -615,7 +585,7 @@ All done. Here's a summary of everything that landed:
 
 ---
 
-## Entry-037 - user-prompt
+## Entry-034 - user-prompt
 **Timestamp:** 2026-11-24T19:15:38Z
 **Author:** jaminleod
 **Type:** user-prompt
@@ -625,7 +595,7 @@ Do you think the header is needed? Could be removed. Also we have nothing in REA
 
 ---
 
-## Entry-038 - bob-response
+## Entry-035 - bob-response
 **Timestamp:** 2026-11-24T19:17:31Z
 **Author:** jaminleod
 **Type:** bob-response
@@ -664,7 +634,7 @@ Both are now browsable in the viewer when you click their sidebar entries. `CONT
 
 ---
 
-## Entry-039 - user-prompt
+## Entry-036 - user-prompt
 **Timestamp:** 2026-11-24T19:19:54Z
 **Author:** jaminleod
 **Type:** user-prompt
@@ -674,7 +644,7 @@ Can we remove the ability to make a directory like NOTES/? It's unnesscary, I th
 
 ---
 
-## Entry-040 - bob-response
+## Entry-037 - bob-response
 **Timestamp:** 2026-11-24T19:21:51Z
 **Author:** jaminleod
 **Type:** bob-response
@@ -697,7 +667,7 @@ Committed as `e26b95d`. Here's what landed:
 
 ---
 
-## Entry-041 - user-prompt
+## Entry-038 - user-prompt
 **Timestamp:** 2026-11-24T19:25:50Z
 **Author:** jaminleod
 **Type:** user-prompt
@@ -709,7 +679,7 @@ Mention in future things to add that having the ability to see the ai's thought 
 
 ---
 
-## Entry-042 - bob-response
+## Entry-039 - bob-response
 **Timestamp:** 2026-11-24T19:27:43Z
 **Author:** jaminleod
 **Type:** bob-response
@@ -731,7 +701,7 @@ Covers:
 
 ---
 
-## Entry-043 - user-prompt
+## Entry-040 - user-prompt
 **Timestamp:** 2026-11-24T19:28:52Z
 **Author:** jaminleod
 **Type:** user-prompt
