@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bob Logbook Viewer</title>
+<style>
+  /* ── Reset & base ─────────────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+               font-size: 14px; line-height: 1.6; color: #1f2328; background: #fff; }
+
+  /* ── Layout ───────────────────────────────────────────────────────── */
+  #app { display: flex; flex-direction: column; height: 100vh; }
+
+  header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 16px; background: #24292f; color: #f0f6fc;
+    border-bottom: 1px solid #30363d; flex-shrink: 0;
+  }
+  header h1 { font-size: 15px; font-weight: 600; letter-spacing: .3px; }
+  header .meta { font-size: 12px; color: #8b949e; margin-left: auto; }
+
+  #load-bar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px; background: #f7f8fa; border-bottom: 1px solid #e5e7eb; flex-shrink: 0;
+  }
+  #load-bar label {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; background: #3b82d4; color: #fff; border-radius: 5px;
+    cursor: pointer; font-size: 13px; font-weight: 500;
+  }
+  #load-bar label:hover { background: #2563c0; }
+  #file-input { display: none; }
+  #drop-zone {
+    flex: 1; border: 1.5px dashed #cbd5e1; border-radius: 5px;
+    padding: 7px 14px; color: #57606a; font-size: 13px;
+    transition: border-color .15s, background .15s;
+  }
+  #drop-zone.drag-over { border-color: #3b82d4; background: #eff6ff; color: #1d4ed8; }
+  #print-btn {
+    padding: 5px 12px; background: #fff; border: 1px solid #d0d7de;
+    border-radius: 5px; cursor: pointer; font-size: 13px;
+  }
+  #print-btn:hover { background: #f3f4f6; }
+
+  #workspace { display: flex; flex: 1; overflow: hidden; }
+
+  /* ── Sidebar ──────────────────────────────────────────────────────── */
+  #sidebar {
+    width: 240px; min-width: 160px; border-right: 1px solid #e5e7eb;
+    overflow-y: auto; background: #f7f8fa; flex-shrink: 0;
+  }
+  .tree-folder {
+    padding: 4px 10px; font-size: 12px; font-weight: 600;
+    color: #57606a; text-transform: uppercase; letter-spacing: .4px;
+    border-bottom: 1px solid #e5e7eb; background: #f0f2f5;
+    user-select: none;
+  }
+  .tree-file {
+    display: flex; align-items: center; gap: 7px;
+    padding: 6px 14px; cursor: pointer; font-size: 13px;
+    color: #1f2328; border-bottom: 1px solid #f0f2f5;
+    transition: background .1s;
+  }
+  .tree-file:hover { background: #e9ecef; }
+  .tree-file.active { background: #dbeafe; color: #1d4ed8; font-weight: 500; }
+  .tree-file .icon { width: 14px; height: 14px; opacity: .7; }
+
+  /* ── Content panel ────────────────────────────────────────────────── */
+  #content { flex: 1; overflow-y: auto; padding: 20px 28px; }
+  #content h2 { font-size: 16px; margin-bottom: 16px; color: #1f2328; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }
+
+  /* ── Welcome screen ───────────────────────────────────────────────── */
+  #welcome { text-align: center; padding: 60px 20px; color: #57606a; }
+  #welcome h2 { font-size: 20px; color: #1f2328; margin-bottom: 10px; }
+  #welcome p { max-width: 480px; margin: 0 auto 8px; }
+
+  /* ── Timeline cards (chat/ files) ────────────────────────────────── */
+  .timeline { display: flex; flex-direction: column; gap: 12px; }
+  .card {
+    border: 1px solid #e5e7eb; border-radius: 7px; overflow: hidden;
+    background: #fff;
+  }
+  .card-header {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+    padding: 8px 14px; background: #f7f8fa; border-bottom: 1px solid #e5e7eb;
+  }
+  .badge-author {
+    display: inline-block; padding: 2px 9px; border-radius: 12px;
+    font-size: 11px; font-weight: 600; color: #fff;
+  }
+  .badge-type {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: 11px; font-weight: 500;
+    background: #e5e7eb; color: #57606a;
+  }
+  .badge-type.user-prompt  { background: #dbeafe; color: #1d4ed8; }
+  .badge-type.bob-response { background: #dcfce7; color: #15803d; }
+  .card-meta { font-size: 11px; color: #57606a; margin-left: auto; }
+  .card-meta span { margin-left: 8px; }
+  .card-body { padding: 12px 14px; white-space: pre-wrap; font-size: 13px; line-height: 1.65; color: #1f2328; }
+
+  /* ── Markdown renderer ────────────────────────────────────────────── */
+  .md-view h1 { font-size: 20px; margin: 20px 0 8px; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; }
+  .md-view h2 { font-size: 17px; margin: 18px 0 6px; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; }
+  .md-view h3 { font-size: 15px; margin: 14px 0 5px; }
+  .md-view h4 { font-size: 14px; margin: 12px 0 4px; }
+  .md-view p  { margin: 8px 0; }
+  .md-view ul, .md-view ol { margin: 8px 0 8px 22px; }
+  .md-view li { margin: 3px 0; }
+  .md-view code { background: #f0f2f5; padding: 1px 5px; border-radius: 3px; font-size: 12.5px; font-family: "SF Mono", Consolas, monospace; }
+  .md-view pre  { background: #f7f8fa; border: 1px solid #e5e7eb; border-radius: 6px; padding: 12px 14px; overflow-x: auto; margin: 10px 0; }
+  .md-view pre code { background: none; padding: 0; }
+  .md-view blockquote { border-left: 3px solid #cbd5e1; margin: 10px 0; padding: 4px 14px; color: #57606a; background: #f7f8fa; border-radius: 0 4px 4px 0; }
+  .md-view strong { font-weight: 600; }
+  .md-view em { font-style: italic; }
+  .md-view hr { border: none; border-top: 1px solid #e5e7eb; margin: 14px 0; }
+  .md-view a { color: #3b82d4; }
+  .md-view table { border-collapse: collapse; margin: 10px 0; font-size: 13px; }
+  .md-view th, .md-view td { border: 1px solid #e5e7eb; padding: 5px 10px; }
+  .md-view th { background: #f0f2f5; font-weight: 600; }
+
+  /* ── Print ────────────────────────────────────────────────────────── */
+  @media print {
+    #load-bar, #print-btn { display: none !important; }
+    header { background: #fff; color: #1f2328; border-bottom: 2px solid #1f2328; }
+    #workspace { display: block; overflow: visible; }
+    #sidebar { display: none; }
+    #content { padding: 0; overflow: visible; }
+    .card { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ── Header ──────────────────────────────────────────────────────── -->
+  <header>
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <rect x="2" y="3" width="10" height="14" rx="2" fill="#58a6ff"/>
+      <rect x="8" y="1" width="10" height="14" rx="2" fill="#79c0ff" opacity=".7"/>
+      <rect x="5" y="7" width="4" height="1.5" rx=".5" fill="#fff"/>
+      <rect x="5" y="10" width="6" height="1.5" rx=".5" fill="#fff"/>
+      <rect x="5" y="13" width="5" height="1.5" rx=".5" fill="#fff"/>
+    </svg>
+    <h1>Bob Logbook Viewer</h1>
+    <span class="meta" id="header-meta"></span>
+  </header>
+
+  <!-- ── Load bar ────────────────────────────────────────────────────── -->
+  <div id="load-bar">
+    <label>
+      📂 Choose file
+      <input type="file" id="file-input" accept=".json,application/json">
+    </label>
+    <div id="drop-zone">Drop <code>bob-context-export.json</code> here</div>
+    <button id="print-btn">🖨 Print</button>
+  </div>
+
+  <!-- ── Main workspace ──────────────────────────────────────────────── -->
+  <div id="workspace">
+    <nav id="sidebar"></nav>
+    <main id="content">
+      <div id="welcome">
+        <h2>Bob Logbook Viewer</h2>
+        <p>Load a <code>bob-context-export.json</code> file (produced by <code>bob-log export-json</code>)
+           to browse the AI workspace timeline.</p>
+        <p>Files under <code>chat/</code> are rendered as a colour-coded timeline.<br>
+           All other files are rendered as Markdown.</p>
+        <p style="margin-top:16px; font-size:12px; color:#8b949e;">
+          Or open <code>viewer.html?demo</code> to see a live sample.
+        </p>
+      </div>
+    </main>
+  </div>
+
+</div>
+
+<script>
+"use strict";
+
+// ── Author colour assignment ───────────────────────────────────────────────
+// Hash the author string to pick one of 8 distinct background colours.
+const AUTHOR_COLOURS = [
+  "#3b82d4", "#7c5cd8", "#db6c26", "#16a34a",
+  "#b91c1c", "#0891b2", "#9333ea", "#b45309"
+];
+function authorColour(name) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = ((h << 5) - h) + name.charCodeAt(i);
+  return AUTHOR_COLOURS[Math.abs(h) % AUTHOR_COLOURS.length];
+}
+
+// ── Minimal Markdown renderer ─────────────────────────────────────────────
+function renderMarkdown(text) {
+  function esc(s) {
+    return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+
+  const lines = text.split(/\r?\n/);
+  const out = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // Fenced code block
+    if (/^```/.test(line)) {
+      i++;
+      const codeLines = [];
+      while (i < lines.length && !/^```/.test(lines[i])) {
+        codeLines.push(esc(lines[i]));
+        i++;
+      }
+      i++; // consume closing ```
+      out.push("<pre><code>" + codeLines.join("\n") + "</code></pre>");
+      continue;
+    }
+
+    // HR
+    if (/^---+$/.test(line.trim())) { out.push("<hr>"); i++; continue; }
+
+    // Headings
+    const hm = line.match(/^(#{1,4})\s+(.*)/);
+    if (hm) {
+      const lvl = hm[1].length;
+      out.push("<h" + lvl + ">" + inline(hm[2]) + "</h" + lvl + ">");
+      i++; continue;
+    }
+
+    // Blockquote
+    if (/^>/.test(line)) {
+      const bqLines = [];
+      while (i < lines.length && /^>/.test(lines[i])) {
+        bqLines.push(inline(lines[i].replace(/^>\s?/, "")));
+        i++;
+      }
+      out.push("<blockquote>" + bqLines.join("<br>") + "</blockquote>");
+      continue;
+    }
+
+    // Unordered list
+    if (/^[-*]\s/.test(line)) {
+      const liLines = [];
+      while (i < lines.length && /^[-*]\s/.test(lines[i])) {
+        liLines.push("<li>" + inline(lines[i].replace(/^[-*]\s/, "")) + "</li>");
+        i++;
+      }
+      out.push("<ul>" + liLines.join("") + "</ul>");
+      continue;
+    }
+
+    // Ordered list
+    if (/^\d+\.\s/.test(line)) {
+      const liLines = [];
+      while (i < lines.length && /^\d+\.\s/.test(lines[i])) {
+        liLines.push("<li>" + inline(lines[i].replace(/^\d+\.\s/, "")) + "</li>");
+        i++;
+      }
+      out.push("<ol>" + liLines.join("") + "</ol>");
+      continue;
+    }
+
+    // Table
+    if (/^\|/.test(line) && i + 1 < lines.length && /^\|[-|: ]+\|/.test(lines[i + 1])) {
+      const headers = line.split("|").slice(1, -1).map(c => "<th>" + inline(c.trim()) + "</th>").join("");
+      i += 2; // skip separator row
+      const rows = [];
+      while (i < lines.length && /^\|/.test(lines[i])) {
+        const cells = lines[i].split("|").slice(1, -1).map(c => "<td>" + inline(c.trim()) + "</td>").join("");
+        rows.push("<tr>" + cells + "</tr>");
+        i++;
+      }
+      out.push("<table><thead><tr>" + headers + "</tr></thead><tbody>" + rows.join("") + "</tbody></table>");
+      continue;
+    }
+
+    // Blank line
+    if (line.trim() === "") { i++; continue; }
+
+    // Paragraph — consume lines until a block-level marker or blank line.
+    // The inner loop must always make progress; the fallback i++ in the else
+    // branch guarantees no infinite loop if a line matches none of the above.
+    const paraLines = [];
+    while (i < lines.length) {
+      const pl = lines[i];
+      if (pl.trim() === "") break;
+      if (/^#{1,4}\s/.test(pl)) break;
+      if (/^>/.test(pl)) break;
+      if (/^[-*]\s/.test(pl)) break;
+      if (/^\d+\.\s/.test(pl)) break;
+      if (/^\|/.test(pl)) break;
+      if (/^```/.test(pl)) break;
+      if (/^---+$/.test(pl.trim())) break;
+      paraLines.push(inline(pl));
+      i++;
+    }
+    if (paraLines.length) {
+      out.push("<p>" + paraLines.join(" ") + "</p>");
+    } else {
+      // Safety net: nothing matched and nothing consumed — advance to avoid infinite loop
+      out.push("<p>" + inline(line) + "</p>");
+      i++;
+    }
+  }
+
+  return out.join("\n");
+
+  function inline(s) {
+    return esc(s)
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/__([^_]+)__/g, "<strong>$1</strong>")
+      .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+      .replace(/_([^_]+)_/g, "<em>$1</em>")
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+  }
+}
+
+// ── Chat timeline parser ───────────────────────────────────────────────────
+// Parses entries written by bob-log-hook.py:
+//   ## Entry-NNN - <event>
+//   **Timestamp:** <iso>
+//   **Author:** <name>
+//   **Type:** <type>
+//   **Session:** <id>
+//
+//   <body text>
+//
+//   ---
+function parseTimeline(text) {
+  const entries = [];
+  const blocks = text.split(/^(?=## Entry-)/m).filter(b => b.trim());
+  for (const block of blocks) {
+    const lines = block.split(/\r?\n/);
+    const entry = { title: "", timestamp: "", author: "", type: "", session: "", body: "" };
+
+    const titleMatch = (lines[0] || "").match(/^##\s+(.+)/);
+    entry.title = titleMatch ? titleMatch[1].trim() : (lines[0] || "").trim();
+
+    let bodyStart = 1;
+    for (let i = 1; i < lines.length; i++) {
+      const kv = lines[i].match(/^\*\*([^*]+)\*\*:\s*(.*)/);
+      if (kv) {
+        const key = kv[1].toLowerCase();
+        const val = kv[2].trim();
+        if (key === "timestamp") entry.timestamp = val;
+        else if (key === "author")  entry.author    = val;
+        else if (key === "type")    entry.type      = val;
+        else if (key === "session") entry.session   = val;
+        bodyStart = i + 1;
+      } else if (lines[i].trim() === "") {
+        bodyStart = i + 1;
+        break;
+      } else {
+        break;
+      }
+    }
+
+    entry.body = lines.slice(bodyStart).join("\n").replace(/\n---\s*$/, "").trim();
+    entries.push(entry);
+  }
+  return entries;
+}
+
+// ── Render functions ──────────────────────────────────────────────────────
+function renderTimeline(path, content) {
+  const entries = parseTimeline(content);
+  if (!entries.length) {
+    return "<h2>" + escH(path) + "</h2><p style='color:#57606a'>No entries found.</p>";
+  }
+  const cards = entries.map(e => {
+    const colour = authorColour(e.author || "unknown");
+    const typeCls = e.type === "user-prompt" ? "user-prompt"
+                  : e.type === "bob-response" ? "bob-response" : "";
+    const ts = e.timestamp ? formatTime(e.timestamp) : "";
+    const session = e.session ? "<span>session: <code>" + escH(e.session) + "</code></span>" : "";
+    return (
+      '<div class="card">' +
+        '<div class="card-header">' +
+          '<span class="badge-author" style="background:' + colour + '">' + escH(e.author || "unknown") + '</span>' +
+          '<span class="badge-type ' + typeCls + '">' + escH(e.type || "event") + '</span>' +
+          '<span class="card-meta"><span>' + escH(ts) + '</span>' + session + '</span>' +
+        '</div>' +
+        '<div class="card-body">' + escH(e.body) + '</div>' +
+      '</div>'
+    );
+  });
+  return "<h2>" + escH(path) + "</h2><div class='timeline'>" + cards.join("") + "</div>";
+}
+
+function renderMd(path, content) {
+  return "<h2>" + escH(path) + "</h2><div class='md-view'>" + renderMarkdown(content) + "</div>";
+}
+
+function escH(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function formatTime(iso) {
+  try {
+    const d = new Date(iso);
+    if (isNaN(d)) return iso;
+    return d.toLocaleString(undefined, {
+      year:"numeric", month:"short", day:"numeric",
+      hour:"2-digit", minute:"2-digit"
+    });
+  } catch(e) { return iso; }
+}
+
+// ── File tree ─────────────────────────────────────────────────────────────
+function buildTree(files) {
+  const groups = {};
+  for (const path of Object.keys(files)) {
+    const slash = path.indexOf("/");
+    const folder = slash === -1 ? "" : path.slice(0, slash);
+    if (!groups[folder]) groups[folder] = [];
+    groups[folder].push(path);
+  }
+
+  const sidebar = document.getElementById("sidebar");
+  sidebar.innerHTML = "";
+
+  for (const [folder, paths] of Object.entries(groups)) {
+    if (folder) {
+      const h = document.createElement("div");
+      h.className = "tree-folder";
+      h.textContent = "\uD83D\uDCC1 " + folder;
+      sidebar.appendChild(h);
+    }
+    for (const path of paths) {
+      const item = document.createElement("div");
+      item.className = "tree-file";
+      const isChat = path.startsWith("chat/");
+      const label = folder ? path.slice(folder.length + 1) : path;
+      item.innerHTML = '<span class="icon">' + (isChat ? "\uD83D\uDCAC" : "\uD83D\uDCC4") + '</span><span>' + escH(label) + '</span>';
+      item.dataset.path = path;
+      item.addEventListener("click", () => selectFile(path));
+      sidebar.appendChild(item);
+    }
+  }
+}
+
+// ── State ─────────────────────────────────────────────────────────────────
+let _files = null;
+
+function selectFile(path) {
+  if (!_files) return;
+  document.querySelectorAll(".tree-file").forEach(el => el.classList.toggle("active", el.dataset.path === path));
+  const content = _files[path] || "";
+  const panel = document.getElementById("content");
+  if (path.startsWith("chat/")) {
+    panel.innerHTML = renderTimeline(path, content);
+  } else {
+    panel.innerHTML = renderMd(path, content);
+  }
+}
+
+function loadExport(data) {
+  if (!data || !data.files) {
+    alert("Invalid export file — expected { files: { ... } }");
+    return;
+  }
+  _files = data.files;
+  buildTree(_files);
+
+  const meta = document.getElementById("header-meta");
+  const count = Object.keys(_files).length;
+  const ts = data.exported_at ? " \u00B7 exported " + formatTime(data.exported_at) : "";
+  meta.textContent = count + " file" + (count !== 1 ? "s" : "") + " \u00B7 branch: " + (data.branch || "bob-context") + ts;
+
+  const paths = Object.keys(_files);
+  const first = paths.find(p => p.startsWith("chat/")) || paths[0];
+  if (first) selectFile(first);
+}
+
+// ── File input ────────────────────────────────────────────────────────────
+document.getElementById("file-input").addEventListener("change", function() {
+  const file = this.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try { loadExport(JSON.parse(e.target.result)); }
+    catch(err) { alert("Could not parse JSON: " + err.message); }
+  };
+  reader.readAsText(file);
+});
+
+// ── Drag and drop ─────────────────────────────────────────────────────────
+const dz = document.getElementById("drop-zone");
+dz.addEventListener("dragover", e => { e.preventDefault(); dz.classList.add("drag-over"); });
+dz.addEventListener("dragleave", () => dz.classList.remove("drag-over"));
+dz.addEventListener("drop", e => {
+  e.preventDefault();
+  dz.classList.remove("drag-over");
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try { loadExport(JSON.parse(ev.target.result)); }
+    catch(err) { alert("Could not parse JSON: " + err.message); }
+  };
+  reader.readAsText(file);
+});
+
+// ── Print ──────────────────────────────────────────────────────────────────
+document.getElementById("print-btn").addEventListener("click", () => window.print());
+
+// ── Demo mode (viewer.html?demo) ──────────────────────────────────────────
+if (location.search.includes("demo")) {
+  loadExport({
+    exported_at: new Date().toISOString(),
+    branch: "bob-context",
+    files: {
+      "chat/jaminleod.md": [
+        "## Entry-001 - UserPromptSubmit",
+        "**Timestamp:** 2026-11-24T11:03:12Z",
+        "**Author:** jaminleod",
+        "**Type:** user-prompt",
+        "**Session:** abc-001",
+        "",
+        "Let's plan the Bob Logbook project. What's the best architecture?",
+        "",
+        "---",
+        "",
+        "## Entry-002 - Stop",
+        "**Timestamp:** 2026-11-24T11:03:58Z",
+        "**Author:** jaminleod",
+        "**Type:** bob-response",
+        "**Session:** abc-001",
+        "",
+        "I recommend a shadow branch approach using git orphan branches. The key insight is that git checkout --orphan bob-context creates a branch with no shared history, so your log entries can never cause merge conflicts on main.",
+        "",
+        "---",
+        "",
+        "## Entry-003 - UserPromptSubmit",
+        "**Timestamp:** 2026-11-24T12:30:05Z",
+        "**Author:** jaminleod",
+        "**Type:** user-prompt",
+        "**Session:** abc-002",
+        "",
+        "Write the bob_log.py init subcommand using git plumbing only - no branch switching.",
+        "",
+        "---",
+        "",
+        "## Entry-004 - Stop",
+        "**Timestamp:** 2026-11-24T12:31:44Z",
+        "**Author:** jaminleod",
+        "**Type:** bob-response",
+        "**Session:** abc-002",
+        "",
+        "Built bob_log.py with init, read, write, append, commit, ls, and export subcommands. All operations use git plumbing (hash-object, mktree, commit-tree, update-ref) so the working tree is never touched.",
+        "",
+        "---"
+      ].join("\n"),
+      "chat/alexvu31.md": [
+        "## Entry-001 - UserPromptSubmit",
+        "**Timestamp:** 2026-11-24T14:10:22Z",
+        "**Author:** alexvu31",
+        "**Type:** user-prompt",
+        "**Session:** def-001",
+        "",
+        "Execute sub-task 4 - build viewer.html.",
+        "",
+        "---",
+        "",
+        "## Entry-002 - Stop",
+        "**Timestamp:** 2026-11-24T14:11:05Z",
+        "**Author:** alexvu31",
+        "**Type:** bob-response",
+        "**Session:** def-001",
+        "",
+        "Built viewer.html - single-file HTML timeline viewer with file picker, drag-and-drop, author colour badges, event-type tags, and print-friendly CSS.",
+        "",
+        "---"
+      ].join("\n"),
+      "decisions.md": [
+        "# Decisions",
+        "",
+        "## 2026-11-24 - Idea Selection",
+        "**Author:** jaminleod",
+        "",
+        "Chosen idea: Bob Logbook - a git shadow-branch workspace that lets IBM Bob and developers",
+        "read, write, and commit arbitrary files on a dedicated branch without touching the working tree.",
+        "",
+        "## 2026-11-24 - Tech Stack",
+        "**Author:** jaminleod",
+        "",
+        "Python 3 stdlib only. No pip installs.",
+        "",
+        "## 2026-11-24 - Export Format",
+        "**Author:** jaminleod",
+        "",
+        "Agreed JSON format: { exported_at, branch, files: { path: content } }"
+      ].join("\n"),
+      "README.md": "# Bob Logbook - AI Workspace\n\nThis is the bob-context shadow branch.\nFiles here are managed by bob_log.py and auto-captured by Bob lifecycle hooks.\n"
+    }
+  });
+}
+</script>
+</body>
+</html>
