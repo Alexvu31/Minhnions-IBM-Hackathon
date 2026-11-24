@@ -264,3 +264,13 @@ What is the architecture?
 Shadow branch + git plumbing + hooks + viewer.
 
 ---
+
+## Entry-003 - user-prompt
+**Timestamp:** 2026-11-24T18:24:34Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** s1
+
+Can you show me the write command?
+
+---
