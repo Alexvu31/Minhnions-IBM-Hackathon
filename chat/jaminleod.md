@@ -455,3 +455,13 @@ Every path escapes correctly. Code blocks use `esc()` directly on raw lines, tab
 No code changes needed — it was already safe. The `esc()` call at the top of `inline()` is the single defensive perimeter and it covers all code paths.
 
 ---
+
+## Entry-029 - user-prompt
+**Timestamp:** 2026-11-24T18:56:21Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** 8606d5cc441ea48f44da5e843fb64605
+
+The session dividers are cool but might get annoying since different users in the all chat will be on different session automatically. Worth just getting rid of I believe.
+
+---
