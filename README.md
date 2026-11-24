@@ -1,32 +1,55 @@
-<!-- Shadow branch copy of main/README.md — updated automatically -->
+<!-- Shadow branch copy -->
 
 # Bob Logbook
 
-> Automatically capture IBM Bob session context into a git shadow branch — and browse it as a clean timeline in your browser.
+> Shared AI working memory for teams — automatically capture every IBM Bob session into a git shadow branch that any teammate can read, browse, and build on, in real time or asynchronously.
 
 ---
 
 ## What it does
 
-Every time you work with IBM Bob, valuable context accumulates: decisions made, prompts that worked, constraints discovered. That context normally lives only in the chat window and disappears when the session ends.
+When a team uses IBM Bob, context fractures: each developer has their own chat history, decisions get made in one session and forgotten in the next, and teammates have no way to see what Bob helped someone else figure out an hour ago.
 
-**Bob Logbook** solves this with two Bob lifecycle hooks that fire on every turn:
+**Bob Logbook** fixes this. Two Bob lifecycle hooks fire silently on every turn — no developer action required:
 
 | Hook | What it captures |
 |---|---|
-| `UserPromptSubmit` | Your prompt, before it is sent to Bob |
+| `UserPromptSubmit` | The developer's prompt, before it is sent to Bob |
 | `Stop` | Bob's final response, after each turn |
 
-Each captured event is appended as a timestamped Markdown entry to `chat/$USER.md` on a dedicated **shadow branch** (`bob-context`). The shadow branch shares no history with `main`, so there are never merge conflicts. Run `bob-log export-json` any time to produce a JSON snapshot, then open `viewer.html` in a browser to browse the full workspace as a colour-coded timeline.
+Each event is appended as a timestamped Markdown entry to `chat/$USER.md` on a dedicated **shadow branch** (`bob-context`). Every developer on the team writes to their own file; the shadow branch accumulates a shared, append-only record of every AI-assisted decision the team has made.
+
+The shadow branch is an **orphan branch** — it shares no history with `main` and can never cause a merge conflict. It is a git branch, so the full history is preserved, diffs are always available, and rollback is a single `git update-ref`.
+
+Run `bob-log serve` to get a live browser dashboard. Any teammate — on any machine that has cloned the repo — can open it and see the entire team's session history, filtered by author, session, or time.
+
+---
+
+## Built for team collaboration
+
+Bob Logbook is designed from the ground up for teams working together with AI, both in real time and across sessions:
+
+**Asynchronous handoff**
+- Developer A works with Bob at 9 AM and closes the session. Everything Bob said — decisions, code, rationale — is on the shadow branch.
+- Developer B opens `bob-log serve` at 2 PM. They see Developer A's full session, can read the decisions file, and can pick up exactly where Developer A left off — without reading a chat transcript.
+
+**Synchronous collaboration**
+- Both developers run `bob-log serve` at the same time.
+- As either developer works with Bob, new entries appear in the other's browser within one second via Server-Sent Events (SSE).
+- The viewer's **All Chats** tab merges all authors' sessions into a single chronological timeline.
+
+**Per-author attribution**
+- Each developer writes to their own `chat/<username>.md` file, derived from `$USER` automatically.
+- The viewer colour-codes authors and lets you filter to any author or session.
 
 ---
 
 ## Why it exists
 
-- **Zero manual effort** — install once, capture forever.
-- **Dogfoods Bob** — the tool was built entirely using Bob; this README was written by Bob.
-- **Team-friendly** — teammates can open the viewer and pick up exactly where someone left off, without reading the full chat history.
-- **No external dependencies** — Python 3 stdlib only (`subprocess`, `pathlib`, `json`, `os`, `sys`). No pip installs, no accounts, no APIs.
+- **Zero manual effort** — install once, capture forever. Developers don't change how they work.
+- **Dogfoods Bob** — the tool was built entirely using Bob. The shadow branch captured its own construction in real time.
+- **No external dependencies** — Python 3 stdlib only. No pip installs, no accounts, no external APIs. Works anywhere Python 3 and git exist.
+- **Git as the safety net** — no force-pushes, no branch deletion. Every write is a commit. The full history is always there.
 
 ---
 
@@ -97,6 +120,9 @@ python3 bob_log.py <subcommand> [args]
 | `ls` | `bob_log.py ls [path]` | Lists files/directories on `bob-context` at the given path |
 | `export` | `bob_log.py export <path> <dest>` | Copies a single file from `bob-context` to the working tree |
 | `export-json` | `bob_log.py export-json [dest.json]` | Dumps all files to a JSON snapshot for the viewer |
+| `log` | `bob_log.py log [--since <sha>] [path]` | Shows commit history; optionally filtered by SHA range or path |
+| `diff` | `bob_log.py diff <path>` | Shows unified diff between the last two commits touching a file |
+| `serve` | `bob_log.py serve [--port N]` | Starts a local HTTP server at `localhost:4242` with live SSE updates |
 
 All paths are relative to the shadow-branch root. Absolute paths and `..` traversals are rejected.
 
@@ -120,17 +146,28 @@ python3 bob_log.py export-json bob-context-export.json
 
 ## Viewer usage
 
-Open `viewer.html` in any browser — no server required.
+### Live mode (recommended)
 
-1. Click **Choose file** (or drag and drop) and select `bob-context-export.json`.
-2. The workspace renders immediately:
-   - **Left panel** — file tree, grouped by folder
-   - **Right panel** — selected file content:
-     - Files under `chat/` → colour-coded timeline cards (author, event type, timestamp, session ID, message body)
-     - All other files → plain Markdown renderer
-3. Use **Print** (top-right) to generate a print-ready version for documentation.
+```sh
+python3 bob_log.py serve
+# Open http://localhost:4242 in your browser
+```
 
-**Demo mode:** Open `viewer.html?demo` to see sample data without loading a file.
+The viewer auto-loads and updates in real time via SSE — no manual export needed.
+
+### Static mode
+
+1. Export a snapshot: `python3 bob_log.py export-json bob-context-export.json`
+2. Open `viewer.html` in any browser and click **Load export** (bottom-right), or drag-and-drop the JSON file.
+
+### What you see
+
+- **Brand bar** — `Bob Logbook` title + tab bar + file/message counts + export timestamp
+- **Left sidebar** — file tree; hover to expand, click to open a tab; active file highlighted
+- **Tab bar** — `💬 All Chats (N)` always first; per-author chat tabs; file tabs; history tabs
+- **Chat view** — ChatGPT-style bubbles (user right/blue, Bob left/grey); filter by author or session, or open filtered view as a new tab
+- **File view** — Markdown-rendered file; `🕐 History (N)` button opens a diff timeline if the file has multiple revisions
+- **History / diff view** — each commit shown as a card with green/red line-level diff against the prior version
 
 ---
 
@@ -168,13 +205,18 @@ The `-c core.autocrlf=false` flag is passed to every git call to ensure consiste
 Each hook invocation appends a block like this to `chat/$USER.md`:
 
 ```markdown
----
-**bob-response** | 2026-11-24T17:00:00Z | author: `jaminleod` | session: `abc-123`
+## Entry-035 - bob-response
+**Timestamp:** 2026-11-24T17:00:00Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** abc123def456
 
 Bob's response text goes here.
+
+---
 ```
 
-The viewer parses these blocks and renders them as timeline cards.
+The viewer parses the `## Entry-NNN` blocks and renders them as chat bubbles.
 
 ---
 
