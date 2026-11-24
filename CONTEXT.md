@@ -9,7 +9,7 @@
 
 ## Entry-001 — Project Setup
 **Date:** 2026-11-24
-**Author:** Jamin
+**Author:** jaminleod
 **Type:** decision
 
 CIPS × IBM Virtual Hackathon. Build from 11 AM to 3 PM ET. Submit one PDF (4 pages max, 11-pt minimum). Optional video up to 10 min.
@@ -22,7 +22,7 @@ Resources: 4 hours, 300 Bobcoins, dev environment provided.
 
 ## Entry-002 — Idea Selection
 **Date:** 2026-11-24
-**Author:** Jamin (via Bob planning session)
+**Author:** jaminleod (via Bob planning session)
 **Type:** decision
 
 **Chosen idea: Bob Logbook**
@@ -45,10 +45,10 @@ A Bob lifecycle hook that automatically captures each session turn (user prompt 
 
 ## Entry-003 — Division of Labour
 **Date:** 2026-11-24
-**Author:** Jamin
+**Author:** jaminleod
 **Type:** decision
 
-**Jamin:** Bob Logbook CLI / hook script
+**jaminleod:** Bob Logbook CLI / hook script
 - `bob-log init` — initialises the shadow branch `bob-context` in the current repo
 - `bob-log add` — appends a structured Markdown entry to `bob-context.md` on the shadow branch
 - `bob-log export` — merges the full log into a single Markdown file in the working directory (for PDF / Bob context paste)
@@ -65,7 +65,7 @@ A Bob lifecycle hook that automatically captures each session turn (user prompt 
 
 ## Entry-004 — Technical Constraints & Key Facts
 **Date:** 2026-11-24
-**Author:** Jamin (via Bob docs search)
+**Author:** jaminleod (via Bob docs search)
 **Type:** technical-note
 
 Bob lifecycle hook API (confirmed from docs):
@@ -89,12 +89,12 @@ Shadow branch strategy:
 
 ## Entry-005 — What to Document for Bob Usage (PDF requirement)
 **Date:** 2026-11-24
-**Author:** Jamin
+**Author:** jaminleod
 **Type:** reminder
 
 The PDF must show how we meaningfully used IBM Bob. Evidence to capture:
 1. This planning conversation — Bob helped us brainstorm, evaluate, and scope the idea
-2. Bob used to write the hook script (Jamin's workstream)
+2. Bob used to write the hook script (jaminleod's workstream)
 3. Bob used to generate the viewer HTML (Alex's workstream)
 4. Bob used to write tests and the README
 5. Screenshots of Bob in action during the build

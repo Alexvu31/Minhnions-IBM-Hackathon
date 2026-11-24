@@ -14,7 +14,7 @@
 5. PDF submission (4 pages, 11-pt minimum)
 
 **Division of labour:**
-- **Jamin:** Tasks 1–3 (hook script + git plumbing)
+- **jaminleod:** Tasks 1–3 (hook script + git plumbing)
 - **Alex:** Tasks 4–5 (viewer + PDF layout)
 - **Both:** Task 6 (README + PDF content)
 
@@ -27,7 +27,7 @@
 **Intent:** Establish the git repo and create the `bob-context` orphan branch so the shadow branch exists before any hook tries to write to it.
 
 **Expected Outcomes:**
-- `git init` run in `/home/jaminleod/projects/ibmbob`
+- `git init` run in `/home/jaminleodleod/projects/ibmbob`
 - An orphan branch `bob-context` exists with an empty initial commit
 - The working tree returns to `main` after setup
 - A `.gitignore` excludes any build artifacts
@@ -71,7 +71,7 @@
 6. Make executable: `chmod +x bob-log.sh`
 
 **Relevant Context:**
-- Using git plumbing (`hash-object`, `update-index`, `commit-tree`, `update-ref`) lets the script write to the shadow branch from any working-tree state — Jamin's systems background applies directly here
+- Using git plumbing (`hash-object`, `update-index`, `commit-tree`, `update-ref`) lets the script write to the shadow branch from any working-tree state — jaminleod's systems background applies directly here
 - The script must be safe to call from a hook (non-interactive, no prompts, fast)
 
 ---
@@ -128,7 +128,7 @@
 7. Test with a real exported log
 
 **Relevant Context:**
-- The Markdown entry format is defined by `bob-log add` in Sub-Task 2 — coordinate with Jamin on the exact header pattern
+- The Markdown entry format is defined by `bob-log add` in Sub-Task 2 — coordinate with jaminleod on the exact header pattern
 - No external API, no npm, no bundler — pure HTML/CSS/JS so it works in the VS Code simple browser panel too
 
 ---
@@ -148,7 +148,7 @@
 1. Write `test-bob-log.sh`:
    - Create a temp dir + `git init`
    - Run `bob-log init` and assert `bob-context` branch exists
-   - Run `bob-log add prompt Jamin "test prompt"` and assert the entry appears in `git show bob-context:bob-context.md`
+   - Run `bob-log add prompt jaminleod "test prompt"` and assert the entry appears in `git show bob-context:bob-context.md`
    - Run `bob-log export` and assert `bob-context-export.md` exists and contains the entry
    - Clean up temp dir
 2. Write `README.md` with the sections above
@@ -174,10 +174,10 @@
 - Page 4: Testing + how to run + team reflection on using Bob
 
 **Todo List:**
-1. Take screenshots of Bob in action during the build (Jamin + Alex)
+1. Take screenshots of Bob in action during the build (jaminleod + Alex)
 2. Export the final `bob-context.md` using `bob-log export` — this is live evidence
 3. Alex drafts the PDF layout (Canva, Google Slides → PDF, or LaTeX)
-4. Jamin reviews and fills in technical accuracy
+4. jaminleod reviews and fills in technical accuracy
 5. Final PDF export — confirm font size ≥ 11pt and page count ≤ 4
 6. Attach PDF to submission email
 
