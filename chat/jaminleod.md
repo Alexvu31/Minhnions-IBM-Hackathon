@@ -177,3 +177,29 @@ Shall I write all of this into an updated plan file — the viewer fixes as one 
 **user-prompt** | 2026-11-24T18:22:27Z | author: `jaminleod` | session: `8606d5cc441ea48f44da5e843fb64605`
 
 Yes add these things to the plan. We can do this now.
+
+---
+**bob-response** | 2026-11-24T18:23:11Z | author: `jaminleod` | session: `8606d5cc441ea48f44da5e843fb64605`
+
+Plan is updated. Here's a summary of what was added and the order we'll implement it:
+
+---
+
+**Three new sub-tasks, in dependency order:**
+
+**Sub-Task 7 — Viewer Fixes** (do first — self-contained, fixes what's broken now)
+- Aligns the hook's entry format with the viewer's parser (`## Entry-NNN` format)
+- Makes card bodies render as Markdown instead of escaped plaintext
+- Adds the "All Contributors" virtual view — synthesised in JS, zero data duplication
+
+**Sub-Task 8 — Coordination CLI Commands** (adds `log` + `diff` to `bob_log.py`)
+- `bob-log log [--since <sha>] [path]` — the "what changed" primitive
+- `bob-log diff <path>` — content diff between last two commits of a file
+- These two commands are what everything else builds on
+
+**Sub-Task 9 — SessionStart Hook + Bob Skill** (depends on Sub-Task 8's `log` command)
+- `SessionStart` hook injects a compact summary of new commits at session start
+- Per-author cursor state stored in `state/$USER.json` on the shadow branch
+- `SKILL.md` closes the loop — teaches Bob *when and how* to use all of this autonomously
+
+Ready to switch to agent mode and start with Sub-Task 7?
