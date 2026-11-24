@@ -905,3 +905,13 @@ Done — `ce7a329`. The install section is now 7 concrete steps:
 7. **Sync collaboration** — both running serve at the same time; mentions the `SessionStart` stretch goal for fully automatic fetch
 
 ---
+
+## Entry-055 - user-prompt
+**Timestamp:** 2026-11-24T19:37:48Z
+**Author:** jaminleod
+**Type:** user-prompt
+**Session:** f7f23ca4e278d3746ce170b98d1796ec
+
+Because the judges will need to see our work.
+
+---
