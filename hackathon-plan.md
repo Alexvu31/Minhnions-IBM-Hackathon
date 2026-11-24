@@ -129,7 +129,7 @@
 
 ## Sub-Task 4 — HTML Viewer (alexvu31)
 
-**Status:** [ ] pending
+**Status:** [x] done
 
 **Intent:** Build a single-file HTML viewer that renders the `bob-context` shadow branch as a browsable workspace — file tree on the left, content panel on the right.
 
@@ -159,7 +159,7 @@
 
 ## Sub-Task 5 — Tests & README
 
-**Status:** [ ] pending
+**Status:** [x] done
 
 **Intent:** Verify the CLI works end-to-end in an isolated environment and write the README for judges and future users.
 
@@ -188,7 +188,7 @@
 
 ## Sub-Task 6 — PDF Submission
 
-**Status:** [ ] pending
+**Status:** [x] done
 
 **Intent:** Produce the 4-page PDF that demonstrates meaningful Bob usage and presents the project to judges.
 

@@ -49,12 +49,17 @@ def _check_path(path: str) -> None:
 
 def _git(*args: str, input: str = None, check: bool = True) -> subprocess.CompletedProcess:
     """Run a git command, return CompletedProcess. Raises on non-zero exit when check=True."""
+    # Use binary I/O so the OS never converts \n → \r\n in stdin/stdout regardless of platform
+    # settings (Windows core.autocrlf, locale, etc.).  We decode stdout/stderr ourselves.
+    raw_input = input.encode("utf-8") if input is not None else None
     result = subprocess.run(
-        ["git"] + list(args),
+        ["git", "-c", "core.autocrlf=false"] + list(args),
         capture_output=True,
-        text=True,
-        input=input,
+        input=raw_input,
     )
+    # Expose decoded strings on the result so callers work identically to the text=True API.
+    result.stdout = result.stdout.decode("utf-8", errors="replace")
+    result.stderr = result.stderr.decode("utf-8", errors="replace")
     if check and result.returncode != 0:
         raise RuntimeError(
             f"git {' '.join(args)!r} failed (exit {result.returncode}):\n{result.stderr.strip()}"
@@ -309,7 +314,7 @@ def cmd_export(args) -> None:
     dest = Path(args.dest)
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(content, encoding="utf-8")
-    print(f"Exported '{args.path}' → '{dest}'")
+    print(f"Exported '{args.path}' -> '{dest}'")
 
 
 def cmd_export_json(args) -> None:
