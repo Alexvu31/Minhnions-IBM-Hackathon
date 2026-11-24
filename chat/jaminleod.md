@@ -385,3 +385,22 @@ Why is the styling still doing this?
 'Timestamp: 2026-11-24T18:45:16Z Author: jaminleod Type: user-prompt Session: 8606d5cc441ea48f44da5e843fb64605' it's in a <p> tag before the chat. It should just be styled. jaminleod text atop it like a message. It shows a user author badge on the left but it is incredibly ugly.
 
 ---
+
+## Entry-024 - bob-response
+**Timestamp:** 2026-11-24T18:50:50Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** 8606d5cc441ea48f44da5e843fb64605
+
+All clean. Here's what was fixed:
+
+**Root cause:** `**Timestamp:**` uses the format `**Key:**` (colon inside the closing `**`), but the regex was written as `\*\*([^*]+)\*\*:` (colon outside). One character off — the entire metadata block was falling through to the body.
+
+**Changes made:**
+- Fixed regex in [`viewer.html`](viewer.html): `\*\*([^*]+)\*\*:\s*` → `\*\*([^*]+):\*\*\s*`
+- Removed `.avatar` CSS and `authorInitials()` function (no avatar in the new design)
+- Cleaned old-format entries off the shadow branch — `chat/jaminleod.md` now starts cleanly at Entry-001
+
+Run `python3 bob_log.py serve` and your real session data will render correctly — author names, correct message types, clean bubble bodies.
+
+---
