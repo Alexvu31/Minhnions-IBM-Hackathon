@@ -495,3 +495,15 @@ git tag v0.5-plan-7b-7c -m "Plan: Sub-Tasks 7b and 7c scoped + PDF evidence capt
 Okay we can build. Let's go. Incremental work, and if any styling changes along the way we won't add it to the plan, just continue through this
 
 ---
+
+## Entry-014 - bob-response
+**Timestamp:** 2026-11-24T18:41:03Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** 8606d5cc441ea48f44da5e843fb64605
+
+SSE `Content-Type: text/event-stream` ✅. The browser-open errors are expected in a headless WSL environment — `webbrowser.open()` is correctly wrapped in a try/except so the server still starts fine.
+
+Mark everything done and update the plan:
+
+---
