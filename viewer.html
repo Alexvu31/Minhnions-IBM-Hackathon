@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bob Logbook Viewer</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    background: #f7f8fa;
+    color: #1f2328;
+  }
+
+  /* ── Header ── */
+  .site-header {
+    background: #1f2328;
+    color: #ffffff;
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .site-header h1 { font-size: 18px; font-weight: 600; letter-spacing: 0.01em; }
+  .site-header .subtitle { font-size: 12px; color: #8b949e; margin-top: 2px; }
+  .logo {
+    width: 36px; height: 36px;
+    background: #3b82d4;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+
+  /* ── Drop zone / file picker ── */
+  .upload-zone {
+    max-width: 760px;
+    margin: 40px auto;
+    padding: 0 20px;
+  }
+  .drop-area {
+    border: 2px dashed #d0d7de;
+    border-radius: 10px;
+    background: #ffffff;
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .drop-area:hover, .drop-area.drag-over {
+    border-color: #3b82d4;
+    background: #f0f6ff;
+  }
+  .drop-area input[type="file"] { display: none; }
+  .drop-area .icon { font-size: 36px; color: #57606a; margin-bottom: 12px; }
+  .drop-area p { color: #57606a; margin-bottom: 8px; }
+  .drop-area label {
+    display: inline-block;
+    background: #3b82d4;
+    color: #fff;
+    padding: 8px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    margin-top: 6px;
+  }
+  .drop-area label:hover { background: #2563c0; }
+
+  /* ── Timeline container ── */
+  #timeline {
+    max-width: 760px;
+    margin: 0 auto 60px;
+    padding: 0 20px;
+    display: none;
+  }
+
+  /* ── Toolbar ── */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .toolbar .info { font-size: 13px; color: #57606a; }
+  .toolbar .info strong { color: #1f2328; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px;
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #1f2328;
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: none;
+    font-family: inherit;
+  }
+  .btn:hover { background: #f3f4f6; border-color: #9ca3af; }
+  .btn-primary { background: #3b82d4; color: #fff; border-color: #3b82d4; }
+  .btn-primary:hover { background: #2563c0; border-color: #2563c0; }
+
+  /* ── Timeline spine ── */
+  .timeline-list { position: relative; padding-left: 32px; }
+  .timeline-list::before {
+    content: '';
+    position: absolute;
+    left: 10px; top: 8px; bottom: 8px;
+    width: 2px;
+    background: #e5e7eb;
+  }
+
+  /* ── Entry card ── */
+  .entry {
+    position: relative;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+  }
+  .entry::before {
+    content: '';
+    position: absolute;
+    left: -27px; top: 18px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--author-color, #57606a);
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 0 2px var(--author-color, #57606a);
+  }
+
+  .entry-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  /* Author badge */
+  .badge-author {
+    display: inline-flex; align-items: center;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #ffffff;
+    background: var(--author-color, #57606a);
+    letter-spacing: 0.02em;
+  }
+
+  /* Event-type tag */
+  .badge-type {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 1px solid currentColor;
+  }
+  .type-stop      { color: #b45309; border-color: #fde68a; background: #fefce8; }
+  .type-prompt    { color: #1d4ed8; border-color: #bfdbfe; background: #eff6ff; }
+  .type-manual    { color: #15803d; border-color: #bbf7d0; background: #f0fdf4; }
+  .type-decision  { color: #7c3aed; border-color: #ddd6fe; background: #f5f3ff; }
+  .type-note      { color: #0369a1; border-color: #bae6fd; background: #f0f9ff; }
+  .type-reminder  { color: #b45309; border-color: #fed7aa; background: #fff7ed; }
+  .type-unknown   { color: #57606a; border-color: #d0d7de; background: #f7f8fa; }
+
+  /* Timestamp */
+  .entry-ts {
+    font-size: 11px;
+    color: #57606a;
+    margin-left: auto;
+    white-space: nowrap;
+  }
+
+  /* Message body */
+  .entry-body {
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: #24292f;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .entry-body code {
+    background: #f6f8fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-size: 12px;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  }
+
+  /* Empty state */
+  #empty-state {
+    text-align: center;
+    padding: 60px 24px;
+    color: #57606a;
+  }
+  #empty-state h2 { font-size: 16px; margin-bottom: 8px; color: #1f2328; }
+
+  /* ── Print styles ── */
+  @media print {
+    body { background: #fff; font-size: 11pt; }
+    .site-header { background: #1f2328 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .upload-zone { display: none !important; }
+    #timeline { display: block !important; max-width: 100%; padding: 0; margin: 0; }
+    .btn, .toolbar .btn { display: none; }
+    .entry {
+      page-break-inside: avoid;
+      border: 1px solid #ccc;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .badge-author, .badge-type {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+  }
+
+  /* ── Footer ── */
+  .site-footer {
+    text-align: center;
+    font-size: 12px;
+    color: #8b949e;
+    padding: 20px 16px;
+    border-top: 1px solid #e5e7eb;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="logo">B</div>
+  <div>
+    <h1>Bob Logbook Viewer</h1>
+    <div class="subtitle">Session timeline from <code style="font-size:11px;background:rgba(255,255,255,0.1);padding:1px 5px;border-radius:3px;">bob-context-export.md</code></div>
+  </div>
+</header>
+
+<div class="upload-zone" id="upload-zone">
+  <div class="drop-area" id="drop-area">
+    <div class="icon">📂</div>
+    <p>Drag &amp; drop <strong>bob-context-export.md</strong> here, or</p>
+    <label for="file-input">Choose file</label>
+    <input type="file" id="file-input" accept=".md,text/plain,text/markdown">
+    <p style="margin-top:14px;font-size:12px;">Runs entirely in-browser — no data leaves your machine.</p>
+  </div>
+</div>
+
+<div id="timeline">
+  <div class="toolbar">
+    <div class="info">
+      Showing <strong id="entry-count">0</strong> entries from
+      <strong id="file-name">—</strong>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn" onclick="document.getElementById('upload-zone').style.display='';document.getElementById('timeline').style.display='none';">Load another file</button>
+      <button class="btn btn-primary" onclick="window.print()">🖨 Print / Save PDF</button>
+    </div>
+  </div>
+  <div class="timeline-list" id="cards"></div>
+  <div id="empty-state" style="display:none;">
+    <h2>No entries found</h2>
+    <p>The file did not contain any recognisable log entries.<br>
+    Make sure the file was produced by <code>bob-log export</code>.</p>
+  </div>
+</div>
+
+<footer class="site-footer">Made with IBM Bob</footer>
+
+<script>
+// ── Colour palette for authors (hash-based, deterministic) ──────────────────
+const AUTHOR_PALETTE = [
+  '#3b82d4', // blue
+  '#7c5cd8', // purple
+  '#059669', // green
+  '#dc6c2c', // orange
+  '#dc2626', // red
+  '#0891b2', // cyan
+  '#7c3aed', // violet
+  '#c026d3', // fuchsia
+];
+const authorColors = {};
+
+function colorForAuthor(name) {
+  const key = (name || 'unknown').toLowerCase();
+  if (authorColors[key]) return authorColors[key];
+  let hash = 0;
+  for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
+  const color = AUTHOR_PALETTE[hash % AUTHOR_PALETTE.length];
+  authorColors[key] = color;
+  return color;
+}
+
+// ── Markdown entry parser ───────────────────────────────────────────────────
+// Expected format produced by bob-log add:
+//
+//   ## Entry-NNN — <optional title>
+//   **Timestamp:** 2026-11-24T16:00:00Z
+//   **Author:** Jamin
+//   **Type:** prompt
+//
+//   <message body>
+//
+//   ---
+//
+// Also handles CONTEXT.md style (## Entry-NNN — Title / **Date:** / **Author:** / **Type:**)
+
+function parseEntries(md) {
+  const entries = [];
+  // Split on lines that start a new ## heading (H2)
+  const sections = md.split(/^(?=##\s)/m).filter(s => s.trim().length > 0);
+
+  for (const section of sections) {
+    const lines = section.split('\n');
+    const heading = lines[0].trim();
+
+    // Must start with ## Entry or be a header section
+    if (!/^##\s/.test(heading)) continue;
+
+    const title = heading.replace(/^##\s+/, '').trim();
+
+    // Extract metadata fields
+    const meta = {};
+    let bodyStart = 1;
+    for (let i = 1; i < lines.length; i++) {
+      const m = lines[i].match(/^\*\*(\w+):\*\*\s*(.+)/);
+      if (m) {
+        meta[m[1].toLowerCase()] = m[2].trim();
+        bodyStart = i + 1;
+      } else if (lines[i].trim() === '' && i < 6) {
+        // allow blank line between meta and body
+        continue;
+      } else if (i > 1 && lines[i].trim() !== '' && !lines[i].match(/^\*\*\w+:\*\*/)) {
+        bodyStart = i;
+        break;
+      }
+    }
+
+    // Body: everything after meta, strip trailing --- separator
+    const bodyLines = lines.slice(bodyStart)
+      .join('\n')
+      .replace(/\n---\s*$/, '')
+      .trim();
+
+    // Prefer Timestamp > Date field for display
+    const tsRaw = meta['timestamp'] || meta['date'] || '';
+    const author = meta['author'] || 'unknown';
+    const type   = (meta['type'] || 'unknown').toLowerCase();
+
+    entries.push({ title, timestamp: tsRaw, author, type, body: bodyLines });
+  }
+  return entries;
+}
+
+// ── Escape HTML ─────────────────────────────────────────────────────────────
+function esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Minimal inline Markdown → HTML (bold, code, newlines) ───────────────────
+function renderBody(text) {
+  return esc(text)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '\n');   // keep pre-wrap
+}
+
+// ── Render entries into the DOM ──────────────────────────────────────────────
+function renderTimeline(entries, fileName) {
+  const cards = document.getElementById('cards');
+  const countEl = document.getElementById('entry-count');
+  const nameEl  = document.getElementById('file-name');
+  const empty   = document.getElementById('empty-state');
+  const timeline = document.getElementById('timeline');
+
+  cards.innerHTML = '';
+  countEl.textContent = entries.length;
+  nameEl.textContent  = fileName;
+
+  document.getElementById('upload-zone').style.display = 'none';
+  timeline.style.display = 'block';
+
+  if (entries.length === 0) {
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  for (const e of entries) {
+    const color = colorForAuthor(e.author);
+    const typeClass = /^(stop|prompt|manual|decision|note|reminder)$/.test(e.type)
+      ? 'type-' + e.type
+      : 'type-unknown';
+
+    const card = document.createElement('div');
+    card.className = 'entry';
+    card.style.setProperty('--author-color', color);
+
+    card.innerHTML = `
+      <div class="entry-header">
+        <span class="badge-author">${esc(e.author)}</span>
+        <span class="badge-type ${typeClass}">${esc(e.type)}</span>
+        ${e.title ? `<span style="font-size:13px;font-weight:500;color:#1f2328;">${esc(e.title)}</span>` : ''}
+        ${e.timestamp ? `<span class="entry-ts">${esc(e.timestamp)}</span>` : ''}
+      </div>
+      ${e.body ? `<div class="entry-body">${renderBody(e.body)}</div>` : ''}
+    `;
+    cards.appendChild(card);
+  }
+}
+
+// ── File loading ─────────────────────────────────────────────────────────────
+function loadFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const entries = parseEntries(ev.target.result);
+    renderTimeline(entries, file.name);
+  };
+  reader.readAsText(file);
+}
+
+// File input
+document.getElementById('file-input').addEventListener('change', function(e) {
+  loadFile(e.target.files[0]);
+});
+
+// Drag and drop
+const dropArea = document.getElementById('drop-area');
+dropArea.addEventListener('dragover', function(e) {
+  e.preventDefault();
+  dropArea.classList.add('drag-over');
+});
+dropArea.addEventListener('dragleave', function() {
+  dropArea.classList.remove('drag-over');
+});
+dropArea.addEventListener('drop', function(e) {
+  e.preventDefault();
+  dropArea.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) loadFile(file);
+});
+
+// Click anywhere on drop area (not just the label)
+dropArea.addEventListener('click', function(e) {
+  if (e.target.tagName !== 'LABEL') {
+    document.getElementById('file-input').click();
+  }
+});
+
+// ── Auto-load demo data if URL has ?demo ─────────────────────────────────────
+if (location.search.includes('demo')) {
+  const demo = `## Entry-001 — Project Setup
+**Date:** 2026-11-24
+**Author:** Jamin
+**Type:** decision
+
+CIPS × IBM Virtual Hackathon. Build from 11 AM to 3 PM ET. Submit one PDF (4 pages max, 11-pt minimum).
+
+---
+
+## Entry-002 — Idea Selection
+**Timestamp:** 2026-11-24T12:30:00Z
+**Author:** Jamin
+**Type:** decision
+
+**Chosen idea: Bob Logbook** — A Bob lifecycle hook that automatically captures each session turn and appends it as a structured, timestamped entry to a git shadow branch.
+
+---
+
+## Entry-003 — User Prompt
+**Timestamp:** 2026-11-24T13:05:12Z
+**Author:** Jamin
+**Type:** prompt
+
+Execute sub-task 4 and sub-task 5
+
+---
+
+## Entry-004 — Bob Response
+**Timestamp:** 2026-11-24T13:05:45Z
+**Author:** Bob
+**Type:** stop
+
+Built \`viewer.html\` and \`test-bob-log.sh\` as requested. All tests pass. README written.
+
+---
+`;
+  const entries = parseEntries(demo);
+  renderTimeline(entries, 'demo-data');
+}
+</script>
+</body>
+</html>
