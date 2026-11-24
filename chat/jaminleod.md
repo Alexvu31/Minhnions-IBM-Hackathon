@@ -578,3 +578,39 @@ CONTEXT.md: add Entry-010 session handoff (7b/7c complete, next: Sub-Task 8)
 Okay I did the commit. I'd like to do more UI changes, what other things are waiting for us? And I was wondering about the HTML because it looked as though the python just wrote the html by-hand with a template in the code rather than another file. Which maybe we should do the for the final to condense it to one 'binary' (python script in this case)
 
 ---
+
+## Entry-036 - bob-response
+**Timestamp:** 2026-11-24T19:13:40Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** f7f23ca4e278d3746ce170b98d1796ec
+
+All done. Here's a summary of everything that landed:
+
+---
+
+## What changed
+
+### [`bob_log.py`](bob_log.py) — Sub-Task 8 complete + export extended
+
+**New commands:**
+- `bob-log log [--since <sha>] [path]` — full commit history, with optional SHA-range and path filter. Live on your shadow branch right now (you can see the 50+ commits to `chat/jaminleod.md`).
+- `bob-log diff <path>` — unified diff between the last two commits touching a file.
+
+**Export extended:**
+- `export-json` and `serve` now include a `history` key in the JSON payload: `{ "history": { "chat/jaminleod.md": [ { sha, author, date, message, content }, ... ] } }` — last 20 revisions per file, only for files with ≥2 commits. This powers the new viewer diff view.
+
+### [`viewer.html`](viewer.html) — all UI improvements
+
+| Feature | Detail |
+|---|---|
+| **Message count on tabs** | `💬 All Chats (42)`, history tabs show `🕐 jaminleod.md (20)` |
+| **File history / diff view** | File tabs get a `🕐 History (N)` button when history data exists. Opens a new tab showing each revision as a card with green/red line-level diff against the prior version |
+| **Filter → new tab** | Filter dropdown has an "Open as new tab" button — creates a fresh closeable tab with just the filtered messages, label auto-built from selected authors/sessions |
+| **Session filter pills** | Active session filters now show as pills in the toolbar (same parity as author pills), truncated to 8 chars with full session on hover |
+| **Sidebar active state** | The sidebar item highlights when its corresponding tab is active; history tabs highlight the underlying file |
+| **Copy button on code blocks** | Hover any code block to reveal a "Copy" button; turns green with "Copied!" for 1.5s |
+| **Demo mode removed** | Dogfooding the live shadow branch instead — `?demo` is gone |
+| **Header meta** | Now shows `N files · M with history · bob-context · exported Xm ago` |
+
+---
