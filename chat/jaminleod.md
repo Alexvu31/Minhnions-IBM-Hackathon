@@ -539,3 +539,37 @@ Mark everything done and update the plan:
 What happened? You didn't finish. We don't need to have xdg-open, just let the link be there the user can click it
 
 ---
+
+## Entry-018 - bob-response
+**Timestamp:** 2026-11-24T18:43:37Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** 8606d5cc441ea48f44da5e843fb64605
+
+Done. Here's the full summary of what was built:
+
+---
+
+**Sub-Tasks 7b + 7c complete ✅**
+
+**[`viewer.html`](viewer.html) — full redesign:**
+- IBM Carbon Design palette throughout (`#0F62FE` blue, `#001141` navy header, `#F4F4F4` AI bubbles)
+- ChatGPT-style bubbles: user messages right-aligned in IBM Blue, AI responses left-aligned in grey, no card borders
+- Persistent tab bar — "💬 All Chats" always first (uncloseable), per-author tabs open from sidebar, file tabs closeable
+- Filter button per chat tab — dropdown with author + session checkboxes, live filter without re-parsing
+- Collapsed icon sidebar (44px wide), hover-expands to 220px with labels
+- Relative timestamps ("2h ago") with absolute ISO on hover
+- Session dividers between different session IDs
+- SSE client auto-detects HTTP vs `file:` protocol — live updates when served, file picker fallback otherwise
+- Full drag-and-drop anywhere on the page with a full-screen overlay
+
+**[`bob_log.py`](bob_log.py) — `serve` command:**
+- `bob-log serve [--port N]` starts a `ThreadingHTTPServer` on `localhost:4242`
+- `GET /` → serves `viewer.html`
+- `GET /api/export` → live export-json payload
+- `GET /api/stream` → SSE, polls HEAD SHA every second, `data: new-data` on change, `: ping` every 15s
+- Prints `http://localhost:4242` to the terminal — user clicks it, no auto-open
+
+**Commit + tag when ready, then Sub-Task 8 (coordination CLI)?**
+
+---
