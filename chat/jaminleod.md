@@ -624,3 +624,42 @@ All done. Here's a summary of everything that landed:
 Do you think the header is needed? Could be removed. Also we have nothing in README.md... is that a real file in the bob branch? It has nothing in it. We should add some more context and copy our current CONTEXT.md inside of our main branch into bob-log
 
 ---
+
+## Entry-038 - bob-response
+**Timestamp:** 2026-11-24T19:17:31Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** f7f23ca4e278d3746ce170b98d1796ec
+
+Here's the full summary of what landed:
+
+---
+
+## What changed
+
+### [`viewer.html`](viewer.html) — header removed
+
+- **48px navy header is gone** — 5% more vertical space for chat and content
+- The brand ("Bob Logbook" + icon) moves into the left side of the **tab bar**, which now spans the full top of the app. Meta info (file count, branch, export time) sits at the right end of the same bar.
+- In `file:` protocol mode, a **floating pill button** (bottom-right, navy) replaces the header Load button — same drag-and-drop still works too
+- In HTTP serve mode (`bob-log serve`), the FAB is hidden via JS — the page just loads automatically with no visual clutter
+
+### Shadow branch — now has real content
+
+```
+bob-context/
+├── CONTEXT.md     ← full copy of main-branch CONTEXT.md (all 10 entries)
+├── README.md      ← full copy of main-branch README.md
+├── chat/
+└── notes/
+```
+
+Both are now browsable in the viewer when you click their sidebar entries. `CONTEXT.md` in particular will render beautifully in the file view — it's a proper Markdown document with tables, code blocks, and bold/italic that the renderer handles.
+
+### [`README.md`](README.md) — updated
+
+- Command table now includes `log`, `diff`, and `serve`
+- Viewer usage section rewritten to lead with `bob-log serve` as the primary path
+- Entry format example updated from the old pipe-delimited format to the current `## Entry-NNN` format
+
+---
