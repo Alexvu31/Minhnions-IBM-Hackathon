@@ -2,26 +2,25 @@
 
 ## Overview
 
-**Goal:** Build "Bob Logbook" — a git shadow-branch workspace that lets IBM Bob (and developers) read, write, and commit arbitrary files on a dedicated branch (`bob-context`) that never touches the developer's working tree. Auto-hooks capture chat turns. A companion HTML viewer renders the workspace as a browsable timeline.
+**Goal:** Build "Bob Logbook" — a git shadow-branch workspace that lets IBM Bob (and developers) read, write, and commit arbitrary files on a dedicated branch (`bob-context`) that never touches the developer's working tree. Auto-hooks capture chat turns. A companion HTML viewer renders the workspace as a browsable timeline. A coordination layer lets multiple Bob agents see each other's work in near-real-time via the shared shadow branch.
 
-**Why this wins:** It treats the shadow branch as shared AI working memory across sessions and teammates. Bob can leave notes, read back prior context, and collaborate across machines — all governed by git. It dogfoods Bob, introduces a novel architectural pattern, and directly addresses a pain point IBM's own developers will recognise.
+**Why this wins:** It treats the shadow branch as shared AI working memory across sessions and teammates. Bob can leave notes, read back prior context, and collaborate across machines — all governed by git. Multiple agents working simultaneously each see what the other is doing through the branch. It dogfoods Bob, introduces a novel architectural pattern, and directly addresses a pain point IBM's own developers will recognise.
 
 **Deliverables:**
-1. `bob_log.py` — Python 3 CLI (stdlib only): `init`, `read`, `write`, `append`, `commit`, `ls`, `export`
-2. `bob-log-hook.py` — thin hook wrapper that reads Bob's JSON stdin and calls `bob_log.py`
-3. `.bob/settings.json` — hook config wiring `Stop` and `UserPromptSubmit` to the hook wrapper
-4. `viewer.html` — single-file HTML workspace viewer (Alex)
-5. `README.md` — setup, command reference, hook install guide
-6. PDF submission (4 pages, 11-pt minimum)
+1. `bob_log.py` — Python 3 CLI (stdlib only): `init`, `read`, `write`, `append`, `commit`, `ls`, `export`, `export-json`, `log`, `diff`
+2. `bob-log-hook.py` — hook wrapper wiring `Stop`, `UserPromptSubmit`, and `SessionStart` to the shadow branch
+3. `.bob/settings.json` — hook config
+4. `viewer.html` — single-file HTML workspace viewer with timeline, Markdown rendering, and All Contributors view
+5. `.bob/skills/bob-log/SKILL.md` — Bob skill teaching agents to use `bob-log` commands proactively
+6. `README.md` — setup, command reference, hook install guide
+7. PDF submission (4 pages, 11-pt minimum)
 
 **Tech stack:** Python 3 stdlib only, git plumbing (no branch switching), pure HTML/CSS/JS for viewer.
 
 **Division of labour:**
-- **jaminleod:** Sub-Tasks 1–3 (shadow branch + CLI + hooks)
-- **alexvu31:** Sub-Task 4 (viewer)
+- **jaminleod:** Sub-Tasks 1–3, 7–9 (shadow branch + CLI + hooks + coordination layer + skill)
+- **alexvu31:** Sub-Task 4 (viewer fixes)
 - **Both:** Sub-Tasks 5–6 (README + PDF)
-
-**Stretch (after MVP is working):** A Bob skill YAML that teaches Bob the available `bob-log` commands and when to call them autonomously.
 
 ---
 
@@ -226,8 +225,118 @@
 
 ---
 
-## Stretch Goals (only if time permits after Sub-Task 5)
+---
 
-- **Bob skill:** A `SKILL.md` that teaches Bob the available `bob-log` commands and instructs it to use them proactively during sessions
-- **`bob-log diff <path>`:** Show git diff of a file between the last two commits on the shadow branch
-- **Remote sync:** `bob-log push` / `bob-log pull` to sync the shadow branch with a remote — enables true cross-machine AI collaboration
+## Sub-Task 7 — Viewer Fixes
+
+**Status:** [x] done
+
+**Intent:** Fix the three issues identified in Alex's viewer: (1) the entry format the hook writes does not match what the viewer parser expects, causing cards to render as raw plaintext; (2) card bodies render as escaped text instead of Markdown; (3) there is no combined view across all contributors.
+
+**Expected Outcomes:**
+- Hook and viewer agree on a single entry format — `## Entry-NNN` heading with `**Timestamp:**`, `**Author:**`, `**Type:**`, `**Session:**` metadata keys
+- `bob-log-hook.py` updated to write entries in the `## Entry-NNN` format with a global counter per file
+- Card bodies in the viewer render as full Markdown (headers, bullets, code fences, bold/italic) using the existing `renderMarkdown()` function
+- A virtual "💬 All Contributors" entry appears at the top of the sidebar chat group, synthesised in the viewer from all `chat/` files sorted by timestamp — no data duplication, no hook change required
+- The demo data in `viewer.html` updated to match the new format so `?demo` still works
+
+**Todo List:**
+1. Update `bob-log-hook.py` `format_entry()` to write `## Entry-NNN` format:
+   - Track a per-file entry counter by reading the existing file and counting existing `## Entry-` headings
+   - Write: `## Entry-NNN - <event-type>\n**Timestamp:** <iso>\n**Author:** <author>\n**Type:** <type>\n**Session:** <session>\n\n<message>\n\n---\n`
+2. In `viewer.html` `renderTimeline()`, replace `escH(e.body)` with `renderMarkdown(e.body)` and remove `white-space: pre-wrap` from `.card-body`, replacing it with `.card-body .md-view` styling
+3. Add an "All Contributors" virtual view: after `buildTree()`, insert a `💬 All Contributors` sidebar item at the top of the chat group; when selected, merge all `chat/` file entries, sort by `entry.timestamp`, and render as a single unified timeline
+4. Update the demo data object in `viewer.html` to use the `## Entry-NNN` format so `?demo` renders correctly
+5. Smoke-test: open `viewer.html?demo` and verify cards show rendered Markdown, the All Contributors view shows all entries interleaved by timestamp, and per-author views are unchanged
+
+**Relevant Context:**
+- `parseTimeline()` in `viewer.html` already expects the `## Entry-NNN` format — only the hook needs updating on the Python side
+- The `renderMarkdown()` function is already defined in `viewer.html` and handles all required syntax
+- The All Contributors view is purely a JS merge at load time — no changes to `bob_log.py` or `export-json` needed
+- Entry counter: `len([l for l in existing_content.splitlines() if l.startswith("## Entry-")])` gives the current count
+
+---
+
+## Sub-Task 8 — Coordination CLI Commands
+
+**Status:** [ ] pending
+
+**Intent:** Add `bob-log log` and `bob-log diff` to `bob_log.py` so agents have primitives to discover what changed on the shadow branch and by whom. These are the building blocks for agent-to-agent async coordination.
+
+**Expected Outcomes:**
+- `bob-log log [--since <sha>] [path]` — prints the commit history of `bob-context`, optionally filtered to commits after a given SHA and/or touching a given path; each line shows short SHA, author, timestamp, message
+- `bob-log diff <path>` — prints the unified diff of `path` between its last two commits on `bob-context`; prints a "no prior version" message if fewer than two commits touch the file
+- Both commands exit cleanly with a friendly message if the branch does not exist
+
+**Todo List:**
+1. Implement `cmd_log`:
+   - Run `git log bob-context --oneline --format="%h %ae %ai %s"` with optional `-- <path>` filter
+   - Accept `--since <sha>` flag: pass `<sha>..bob-context` as the range if provided
+   - Print each line to stdout formatted as `<sha>  <date>  <author>  <message>`
+2. Implement `cmd_diff`:
+   - Find the last two commits touching `path`: `git log bob-context --format="%H" -2 -- <path>`
+   - If fewer than two, print "No prior version of '<path>' to diff against." and exit 0
+   - Run `git diff <older> <newer> -- <path>` and print to stdout
+3. Wire both into `build_parser()` and `HANDLERS`
+4. Add path sanitisation to `diff` (reuses `_check_path`)
+5. Test manually: write a file twice, run `bob-log diff`, confirm the diff shows the change; run `bob-log log`, confirm the commit list appears
+
+**Relevant Context:**
+- `git log --format="%H" -2 -- <path>` returns the two most recent commits that touched `path` — first line is newest
+- `git diff <sha1> <sha2> -- <path>` produces a standard unified diff
+- `--since <sha>` is implemented as a git revision range: `<sha>..bob-context` — not a date filter
+
+---
+
+## Sub-Task 9 — SessionStart Hook + Bob Skill
+
+**Status:** [ ] pending
+
+**Intent:** Wire a `SessionStart` hook that injects a compact summary of recent shadow-branch changes into the model context at the start of every session. Write a Bob skill that teaches agents to use `bob-log` commands proactively — completing the agent coordination loop.
+
+**Expected Outcomes:**
+- `SessionStart` hook added to `.bob/settings.json` and handled in `bob-log-hook.py`
+- At session start, the hook fetches the remote shadow branch first so it always reads the true latest state across all contributors, then runs `bob-log log --since <last-seen-sha>` to find new commits, formats a compact summary, and returns it as `additionalContext` via structured JSON output on stdout
+- After producing the summary, the hook pushes the updated `state/$USER.json` cursor back to the remote so other agents can see when this author's session started
+- The last-seen SHA is persisted in a small state file on the shadow branch (`state/$USER.json`) so each author tracks their own cursor independently
+- If no remote is configured, fetch and push steps are silently skipped — the hook still works in a local-only setup
+- If no new commits exist since last session, the hook outputs nothing (clean context window)
+- `bob-log log` itself accepts an optional `--fetch` flag that runs `git fetch` before reading the log, for callers who want on-demand fresh data during a session
+- `.bob/skills/bob-log/SKILL.md` exists and teaches Bob: what commands are available, when to call them proactively (before architectural decisions, when asked about prior work, when another agent's changes are relevant), and the coordination conventions (reading `state/`, writing notes to `notes/`)
+
+**Todo List:**
+1. Add `bob-log push` and `bob-log pull` commands to `bob_log.py`:
+   - `pull`: `git fetch origin bob-context:bob-context` — fast-forward the local ref from remote; skip silently if no remote
+   - `push`: `git push origin bob-context` — push local ref to remote; skip silently if no remote
+   - Both detect "no remote" via `git remote` exit code and print a friendly message rather than erroring
+2. Add `--fetch` flag to `cmd_log`: if present, run `bob-log pull` before reading the log
+3. Add `SessionStart` handler to `bob-log-hook.py`:
+   - Run `bob-log pull` first (fetches latest from remote; no-op if no remote)
+   - Read `state/$USER.json` from the shadow branch to get `last_seen_sha` (empty string if absent — first session)
+   - Run `bob-log log --since <last_seen_sha>` to get new commits
+   - If no new commits: update state cursor, push, exit 0 with no stdout
+   - If new commits exist: format a compact Markdown summary listing each commit (sha, author, timestamp, message)
+   - Write current HEAD sha to `state/$USER.json` on the shadow branch
+   - Run `bob-log push` (syncs state cursor back to remote; no-op if no remote)
+   - Print structured JSON to stdout: `{"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": "<summary>"}}`
+4. Add `SessionStart` to `.bob/settings.json` hooks
+5. Create `.bob/skills/bob-log/SKILL.md`:
+   - Frontmatter: `name: bob-log`, `description: ...`
+   - Sections: Available Commands, When to Use Them Proactively, Coordination Conventions, Entry Format
+   - Key instructions: check `bob-log log --fetch` before making decisions that might conflict with another agent's recent work; write structured notes to `notes/<topic>.md` when making non-trivial decisions; read `chat/<author>.md` when asked about another contributor's context
+6. Test `SessionStart`: start a new Bob session, confirm the summary appears in the first turn context (or nothing appears if no new commits)
+7. Update README with coordination workflow section
+
+**Relevant Context:**
+- `SessionStart` stdout IS injected into the model as context — the structured `additionalContext` JSON is the right pattern (see hook skill)
+- Fetch/push must be fire-and-forget when no remote exists: `git remote` returns non-zero if no remotes are configured — check this before running fetch/push
+- State file format: `{"last_seen_sha": "<sha>", "updated_at": "<iso>"}` — stored at `state/$USER.json` on `bob-context`
+- The skill file location must be `.bob/skills/bob-log/SKILL.md` for Bob to discover it
+- `bob-log log --since ""` (empty string) should return all commits — handle the empty-string case as "no filter"
+- `git fetch origin bob-context:bob-context` fast-forwards the local ref without switching branches — consistent with the no-checkout plumbing pattern used throughout
+
+---
+
+## Stretch Goals
+
+- **Remote sync:** `bob-log push` / `bob-log pull` are now core commands; a future enhancement is `bob-log sync` that does pull + push in one step with conflict detection

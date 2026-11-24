@@ -99,7 +99,11 @@
   .badge-type.bob-response { background: #dcfce7; color: #15803d; }
   .card-meta { font-size: 11px; color: #57606a; margin-left: auto; }
   .card-meta span { margin-left: 8px; }
-  .card-body { padding: 12px 14px; white-space: pre-wrap; font-size: 13px; line-height: 1.65; color: #1f2328; }
+  .card-body { padding: 12px 14px; font-size: 13px; line-height: 1.65; color: #1f2328; }
+  .card-body .md-view { font-size: 13px; }
+  .card-body .md-view h1 { font-size: 16px; }
+  .card-body .md-view h2 { font-size: 14px; }
+  .card-body .md-view h3, .card-body .md-view h4 { font-size: 13px; }
 
   /* ── Markdown renderer ────────────────────────────────────────────── */
   .md-view h1 { font-size: 20px; margin: 20px 0 8px; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; }
@@ -383,7 +387,7 @@ function renderTimeline(path, content) {
           '<span class="badge-type ' + typeCls + '">' + escH(e.type || "event") + '</span>' +
           '<span class="card-meta"><span>' + escH(ts) + '</span>' + session + '</span>' +
         '</div>' +
-        '<div class="card-body">' + escH(e.body) + '</div>' +
+        '<div class="card-body"><div class="md-view">' + renderMarkdown(e.body) + '</div></div>' +
       '</div>'
     );
   });
@@ -409,6 +413,47 @@ function formatTime(iso) {
   } catch(e) { return iso; }
 }
 
+// ── All Contributors virtual view ─────────────────────────────────────────
+const ALL_CONTRIBUTORS_PATH = "__all_contributors__";
+
+function renderAllContributors() {
+  const chatPaths = Object.keys(_files).filter(p => p.startsWith("chat/"));
+  if (!chatPaths.length) {
+    return "<h2>💬 All Contributors</h2><p style='color:#57606a'>No chat files found.</p>";
+  }
+  // Merge all entries from every chat/ file
+  const all = [];
+  for (const path of chatPaths) {
+    const entries = parseTimeline(_files[path] || "");
+    for (const e of entries) {
+      all.push(e);
+    }
+  }
+  // Sort by timestamp ISO string (lexicographic sort works for ISO 8601)
+  all.sort((a, b) => (a.timestamp || "").localeCompare(b.timestamp || ""));
+  if (!all.length) {
+    return "<h2>💬 All Contributors</h2><p style='color:#57606a'>No entries found.</p>";
+  }
+  const cards = all.map(e => {
+    const colour = authorColour(e.author || "unknown");
+    const typeCls = e.type === "user-prompt" ? "user-prompt"
+                  : e.type === "bob-response" ? "bob-response" : "";
+    const ts = e.timestamp ? formatTime(e.timestamp) : "";
+    const session = e.session ? "<span>session: <code>" + escH(e.session) + "</code></span>" : "";
+    return (
+      '<div class="card">' +
+        '<div class="card-header">' +
+          '<span class="badge-author" style="background:' + colour + '">' + escH(e.author || "unknown") + '</span>' +
+          '<span class="badge-type ' + typeCls + '">' + escH(e.type || "event") + '</span>' +
+          '<span class="card-meta"><span>' + escH(ts) + '</span>' + session + '</span>' +
+        '</div>' +
+        '<div class="card-body"><div class="md-view">' + renderMarkdown(e.body) + '</div></div>' +
+      '</div>'
+    );
+  });
+  return "<h2>💬 All Contributors</h2><div class='timeline'>" + cards.join("") + "</div>";
+}
+
 // ── File tree ─────────────────────────────────────────────────────────────
 function buildTree(files) {
   const groups = {};
@@ -422,8 +467,25 @@ function buildTree(files) {
   const sidebar = document.getElementById("sidebar");
   sidebar.innerHTML = "";
 
+  // Inject "All Contributors" at the top of the chat group if any chat/ files exist
+  const hasChatFiles = Object.keys(files).some(p => p.startsWith("chat/"));
+  if (hasChatFiles) {
+    const folderHeader = document.createElement("div");
+    folderHeader.className = "tree-folder";
+    folderHeader.textContent = "\uD83D\uDCC1 chat";
+    sidebar.appendChild(folderHeader);
+
+    const allItem = document.createElement("div");
+    allItem.className = "tree-file";
+    allItem.innerHTML = '<span class="icon">💬</span><span>All Contributors</span>';
+    allItem.dataset.path = ALL_CONTRIBUTORS_PATH;
+    allItem.addEventListener("click", () => selectFile(ALL_CONTRIBUTORS_PATH));
+    sidebar.appendChild(allItem);
+  }
+
   for (const [folder, paths] of Object.entries(groups)) {
-    if (folder) {
+    // Skip the chat folder header — already rendered above with All Contributors
+    if (folder !== "chat" && folder) {
       const h = document.createElement("div");
       h.className = "tree-folder";
       h.textContent = "\uD83D\uDCC1 " + folder;
@@ -434,6 +496,8 @@ function buildTree(files) {
       item.className = "tree-file";
       const isChat = path.startsWith("chat/");
       const label = folder ? path.slice(folder.length + 1) : path;
+      // Indent chat/ files under the already-rendered folder header
+      item.style.paddingLeft = isChat ? "24px" : "14px";
       item.innerHTML = '<span class="icon">' + (isChat ? "\uD83D\uDCAC" : "\uD83D\uDCC4") + '</span><span>' + escH(label) + '</span>';
       item.dataset.path = path;
       item.addEventListener("click", () => selectFile(path));
@@ -448,12 +512,13 @@ let _files = null;
 function selectFile(path) {
   if (!_files) return;
   document.querySelectorAll(".tree-file").forEach(el => el.classList.toggle("active", el.dataset.path === path));
-  const content = _files[path] || "";
   const panel = document.getElementById("content");
-  if (path.startsWith("chat/")) {
-    panel.innerHTML = renderTimeline(path, content);
+  if (path === ALL_CONTRIBUTORS_PATH) {
+    panel.innerHTML = renderAllContributors();
+  } else if (path.startsWith("chat/")) {
+    panel.innerHTML = renderTimeline(path, _files[path] || "");
   } else {
-    panel.innerHTML = renderMd(path, content);
+    panel.innerHTML = renderMd(path, _files[path] || "");
   }
 }
 
@@ -470,9 +535,14 @@ function loadExport(data) {
   const ts = data.exported_at ? " \u00B7 exported " + formatTime(data.exported_at) : "";
   meta.textContent = count + " file" + (count !== 1 ? "s" : "") + " \u00B7 branch: " + (data.branch || "bob-context") + ts;
 
-  const paths = Object.keys(_files);
-  const first = paths.find(p => p.startsWith("chat/")) || paths[0];
-  if (first) selectFile(first);
+  // Default selection: All Contributors if any chat files exist, otherwise first file
+  const hasChatFiles = Object.keys(_files).some(p => p.startsWith("chat/"));
+  if (hasChatFiles) {
+    selectFile(ALL_CONTRIBUTORS_PATH);
+  } else {
+    const first = Object.keys(_files)[0];
+    if (first) selectFile(first);
+  }
 }
 
 // ── File input ────────────────────────────────────────────────────────────
@@ -514,7 +584,7 @@ if (location.search.includes("demo")) {
     branch: "bob-context",
     files: {
       "chat/jaminleod.md": [
-        "## Entry-001 - UserPromptSubmit",
+        "## Entry-001 - user-prompt",
         "**Timestamp:** 2026-11-24T11:03:12Z",
         "**Author:** jaminleod",
         "**Type:** user-prompt",
@@ -524,54 +594,74 @@ if (location.search.includes("demo")) {
         "",
         "---",
         "",
-        "## Entry-002 - Stop",
+        "## Entry-002 - bob-response",
         "**Timestamp:** 2026-11-24T11:03:58Z",
         "**Author:** jaminleod",
         "**Type:** bob-response",
         "**Session:** abc-001",
         "",
-        "I recommend a shadow branch approach using git orphan branches. The key insight is that git checkout --orphan bob-context creates a branch with no shared history, so your log entries can never cause merge conflicts on main.",
+        "I recommend a **shadow branch** approach using git orphan branches. The key insight is:",
+        "",
+        "- `git checkout --orphan bob-context` creates a branch with no shared history",
+        "- Writes go through `hash-object` → `mktree` → `commit-tree` → `update-ref`",
+        "- The working tree is **never switched** — zero interference with your code",
         "",
         "---",
         "",
-        "## Entry-003 - UserPromptSubmit",
+        "## Entry-003 - user-prompt",
         "**Timestamp:** 2026-11-24T12:30:05Z",
         "**Author:** jaminleod",
         "**Type:** user-prompt",
         "**Session:** abc-002",
         "",
-        "Write the bob_log.py init subcommand using git plumbing only - no branch switching.",
+        "Write the `bob_log.py` init subcommand using git plumbing only — no branch switching.",
         "",
         "---",
         "",
-        "## Entry-004 - Stop",
+        "## Entry-004 - bob-response",
         "**Timestamp:** 2026-11-24T12:31:44Z",
         "**Author:** jaminleod",
         "**Type:** bob-response",
         "**Session:** abc-002",
         "",
-        "Built bob_log.py with init, read, write, append, commit, ls, and export subcommands. All operations use git plumbing (hash-object, mktree, commit-tree, update-ref) so the working tree is never touched.",
+        "Built `bob_log.py` with these subcommands:",
+        "",
+        "| Command | Description |",
+        "|---|---|",
+        "| `init` | Creates the orphan branch |",
+        "| `read` | Reads a file from the shadow branch |",
+        "| `write` / `append` | Writes or appends content |",
+        "| `ls` | Lists files at a path |",
+        "| `export-json` | Dumps everything as JSON for the viewer |",
+        "",
+        "All operations use git plumbing — `hash-object`, `mktree`, `commit-tree`, `update-ref`.",
         "",
         "---"
       ].join("\n"),
       "chat/alexvu31.md": [
-        "## Entry-001 - UserPromptSubmit",
+        "## Entry-001 - user-prompt",
         "**Timestamp:** 2026-11-24T14:10:22Z",
         "**Author:** alexvu31",
         "**Type:** user-prompt",
         "**Session:** def-001",
         "",
-        "Execute sub-task 4 - build viewer.html.",
+        "Execute sub-task 4 — build `viewer.html`.",
         "",
         "---",
         "",
-        "## Entry-002 - Stop",
+        "## Entry-002 - bob-response",
         "**Timestamp:** 2026-11-24T14:11:05Z",
         "**Author:** alexvu31",
         "**Type:** bob-response",
         "**Session:** def-001",
         "",
-        "Built viewer.html - single-file HTML timeline viewer with file picker, drag-and-drop, author colour badges, event-type tags, and print-friendly CSS.",
+        "Built `viewer.html` — a single-file HTML timeline viewer with:",
+        "",
+        "- File picker and drag-and-drop JSON import",
+        "- **Left panel**: file tree grouped by folder",
+        "- **Right panel**: chat files → timeline cards; other files → Markdown",
+        "- Author colour badges (hashed from username)",
+        "- `@media print` CSS for PDF screenshots",
         "",
         "---"
       ].join("\n"),
