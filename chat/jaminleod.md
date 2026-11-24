@@ -887,3 +887,21 @@ That's also a ready-made pull quote for the PDF.
 Can you make the instructions and how to dog-food import for github?
 
 ---
+
+## Entry-054 - bob-response
+**Timestamp:** 2026-11-24T19:37:12Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** f7f23ca4e278d3746ce170b98d1796ec
+
+Done — `ce7a329`. The install section is now 7 concrete steps:
+
+1. `git clone https://github.com/alexvu31/minhnions-ibm-hackathon` — real URL
+2. `bob-log init` — create shadow branch locally
+3. `git push origin bob-context` — put it on GitHub; note that only the **first person** needs to do this
+4. Hook config — with the correct `/home/$USER/projects/ibmbob/` path hint for the hackathon environment
+5. **Dogfood step** — `bob-log serve` → open `http://localhost:4242` → watch yourself appear in the viewer
+6. **Async handoff** — push shadow branch, teammate fetches and runs serve, sees your full session in their All Chats tab
+7. **Sync collaboration** — both running serve at the same time; mentions the `SessionStart` stretch goal for fully automatic fetch
+
+---
