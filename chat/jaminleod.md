@@ -915,3 +915,21 @@ Done — `ce7a329`. The install section is now 7 concrete steps:
 Because the judges will need to see our work.
 
 ---
+
+## Entry-056 - bob-response
+**Timestamp:** 2026-11-24T19:38:38Z
+**Author:** jaminleod
+**Type:** bob-response
+**Session:** f7f23ca4e278d3746ce170b98d1796ec
+
+Alexvu31 already pushed the PDF and screenshots. Both branches are now fully in sync on GitHub:
+
+- **`main`** — `https://github.com/Alexvu31/Minhnions-IBM-Hackathon` — all code, README, CONTEXT.md, `FinalSubmission.pdf`, screenshots
+- **`bob-context`** — same repo, shadow branch — the full live session log that judges can browse directly on GitHub or via `bob-log serve`
+
+Judges can see the shadow branch at:
+`https://github.com/Alexvu31/Minhnions-IBM-Hackathon/tree/bob-context`
+
+That URL shows `chat/jaminleod.md`, `CONTEXT.md`, `README.md` — the entire AI working memory, right there in GitHub's UI, as proof the tool captured its own construction.
+
+---
