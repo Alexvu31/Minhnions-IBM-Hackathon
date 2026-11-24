@@ -27,18 +27,26 @@ body {
 }
 .page:last-child { page-break-after: auto; }
 
-/* ── Print: map each .page to exactly one printed page ── */
-@page { size: A4; margin: 0; }
+/* ── Print: each .page forces a new printed page ── */
+@page { size: A4; margin: 16mm 16mm 14mm; }
 @media print {
   body { background: #fff; }
   .page {
-    width: 210mm;
+    width: 100%;
     min-height: 0;
-    height: 297mm;
     margin: 0;
-    padding: 16mm 16mm 14mm;
+    padding: 0;
     box-shadow: none;
-    overflow: hidden;
+    page-break-after: always;
+    break-after: page;
+  }
+  .page:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+  .pg-footer {
+    position: static;
+    margin-top: 14px;
   }
 }
 
